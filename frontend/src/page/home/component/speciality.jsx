@@ -1,0 +1,49 @@
+import React from 'react';
+
+function Speciality() {
+  return (
+    <>
+      {/* Find by Specialty Section */}
+      <section className="w-full py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-6">
+            {/* Section Header */}
+            <div className="space-y-3 max-w-2xl">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-balance">
+                Find by Specialty
+              </h2>
+              <p className="text-lg text-slate-600 leading-relaxed text-pretty">
+                Simply browse through our extensive list of trusted doctors,
+                schedule your appointment hassle-free.
+              </p>
+            </div>
+
+            {/* Specialty Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-8">
+              {[
+                { name: 'General Physician', icon: '👨‍⚕️' },
+                { name: 'Gynecologist', icon: '👩‍⚕️' },
+                { name: 'Dermatologist', icon: '🔬' },
+                { name: 'Pediatrician', icon: '👶' },
+                { name: 'Neurologist', icon: '🧠' },
+                { name: 'Gastroenterologist', icon: '💊' },
+              ].map((specialty) => (
+                <div
+                  key={specialty.name}
+                  className="group flex flex-col items-center justify-center p-6 rounded-lg border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+                >
+                  <span className="text-4xl mb-3">{specialty.icon}</span>
+                  <p className="text-center font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-sm md:text-base">
+                    {specialty.name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export default Speciality;
