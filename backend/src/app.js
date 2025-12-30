@@ -7,9 +7,16 @@ import authRoutes from './routes/user.routes.js'
 import doctorRoutes from './routes/doctor.route.js'
 import appointmentRoutes from './routes/appointment.routes.js'
 import paymentRoutes from './routes/paymet.routes.js'
+import cors from 'cors'
 dotenv.config();
 const app = express();
 connectDB();
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        credentials: true,
+    })
+);
 
 
 app.use(express.json());

@@ -1,7 +1,35 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ROUTES } from './constant/route';
+import Home from './page/home/page';
+import About from './page/about/page';
+import Contact from './page/contact-us/page';
+import Doctor from './page/doctor/page';
+import Login from './page/unauth/login/login';
+import Register from './page/unauth/register/register';
+import AuthLayout from './layout/authLayout';
+import PublicLayout from './layout/unAuthLayout'; // I assume this is your main site layout
 
-function App() {
-  
-}
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Main public pages (with full site layout, header, navbar, etc.) */}
+        <Route element={<PublicLayout />}>
+          <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.ABOUT} element={<About />} />
+          <Route path={ROUTES.CONTACT} element={<Contact />} />
+          <Route path={ROUTES.DOCTOR} element={<Doctor />} />
+          {/* You can add a redirect or fallback if needed */}
+        </Route>
+
+        <Route element={<AuthLayout />}>
+          <Route path={ROUTES.LOGIN} element={<Login />} />
+          <Route path={ROUTES.REGISTER} element={<Register />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

@@ -1,4 +1,4 @@
-import { ROUTES } from "../routes/routes";
+import { ROUTES } from "./route";
 
 export const NAV_LINKS = [
   {
