@@ -9,6 +9,7 @@ import Login from './page/unauth/login/login';
 import Register from './page/unauth/register/register';
 import AuthLayout from './layout/authLayout';
 import PublicLayout from './layout/unAuthLayout'; // I assume this is your main site layout
+import DoctorDetailPage from './page/doctor/detail/page';
 
 const App = () => {
   return (
@@ -18,11 +19,13 @@ const App = () => {
         <Route element={<PublicLayout />}>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.ABOUT} element={<About />} />
-          <Route path={ROUTES.CONTACT} element={<Contact />} />
+          {/* <Route path={ROUTES.CONTACT} element={<DoctorDetailPage />} /> */}
           <Route path={ROUTES.DOCTOR} element={<Doctor />} />
+          <Route path={ROUTES.DOCTOR + "/:id"} element={<DoctorDetailPage />} />
           {/* You can add a redirect or fallback if needed */}
         </Route>
 
+        {/* Auth pages with the special split-screen AuthLayout */}
         <Route element={<AuthLayout />}>
           <Route path={ROUTES.LOGIN} element={<Login />} />
           <Route path={ROUTES.REGISTER} element={<Register />} />

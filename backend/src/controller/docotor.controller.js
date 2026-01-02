@@ -4,6 +4,7 @@ import AppError from "../utils/appError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getDataUri } from "../utils/dataUri.js";
 import cloudinary from "../utils/cloudinary.js";
+import ApiFeatures from "../utils/apiFeatures.js";
 
 const getCurrentUser = (req) => req.user;
 
@@ -56,15 +57,36 @@ export const createDoctorProfile = asyncHandler(async (req, res, next) => {
     });
 });
 
-// ------------------------------
-// Get All Doctors
-// ------------------------------
+
 export const getDoctors = asyncHandler(async (req, res) => {
-    const doctors = await DoctorProfile.find()
+    const features = new ApiFeatures(
+        DoctorProfile.find()
+            .populate({
+                path: "user",
+                select: "name image",
+            })
+            .select("speciality fees degree"),
+        req.query
+    )
+        .filter()
+        .sort()
+        .paginate();
+
+    const doctors = await features.query;
+
+    const formattedDoctors = doctors.map(doc => ({
+        id: doc._id,
+        name: doc.user?.name,
+        image: doc.user?.image || doc.image,
+        speciality: doc.speciality,
+        degree: doc.degree,
+        fees: doc.fees,
+    }));
+
     res.status(200).json({
         success: true,
-        count: doctors.length,
-        data: doctors,
+        count: formattedDoctors.length,
+        data: formattedDoctors,
     });
 });
 

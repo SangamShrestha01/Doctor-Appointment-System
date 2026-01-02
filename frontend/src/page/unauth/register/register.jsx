@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema } from '../../../schemas/register';
 import { registerUser } from '../../../services/mutatation/auth.mutation';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, PlaneIcon } from 'lucide-react';
 
 const Register = () => {
   const {
@@ -131,21 +131,34 @@ const Register = () => {
               </select>
               <p className="text-red-500 text-sm">{errors.role?.message}</p>
             </div>
-
             <div>
               <label className="text-sm font-medium text-slate-700 ml-1">
-                Profile Image
+                Address
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                {...register('image')}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              />
-              <p className="text-red-500 text-sm">{errors.image?.message}</p>
+              <div className="relative">
+                <PlaneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="address"
+                  placeholder="pokhara"
+                  {...register('address')}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+              </div>
+              <p className="text-red-500 text-sm">{errors.email?.message}</p>
             </div>
           </div>
-
+          <div>
+            <label className="text-sm font-medium text-slate-700 ml-1">
+              Profile Image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              {...register('image')}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+            <p className="text-red-500 text-sm">{errors.image?.message}</p>
+          </div>
           <button
             type="submit"
             disabled={isSubmitting}
