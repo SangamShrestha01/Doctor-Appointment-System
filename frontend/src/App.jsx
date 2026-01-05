@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ROUTES } from './constant/route';
-import Home from './page/home/page';
 import About from './page/about/page';
 import Contact from './page/contact-us/page';
 import Doctor from './page/doctor/page';
@@ -10,6 +9,7 @@ import Register from './page/unauth/register/register';
 import AuthLayout from './layout/authLayout';
 import PublicLayout from './layout/unAuthLayout'; // I assume this is your main site layout
 import DoctorDetailPage from './page/doctor/detail/page';
+import Home from './page/home/page';
 
 const App = () => {
   return (

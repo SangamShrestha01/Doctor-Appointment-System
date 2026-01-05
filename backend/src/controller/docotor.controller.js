@@ -59,6 +59,19 @@ export const createDoctorProfile = asyncHandler(async (req, res, next) => {
 
 
 export const getDoctors = asyncHandler(async (req, res) => {
+    const totalFeatures = new ApiFeatures(
+        DoctorProfile.find().populate({
+            path: "user",
+            select: "name image",
+        }),
+        req.query
+    )
+        .filter()
+        .sort();
+
+    const totalCount = await totalFeatures.query.countDocuments();
+
+    // Second: Get paginated doctors
     const features = new ApiFeatures(
         DoctorProfile.find()
             .populate({
@@ -76,8 +89,8 @@ export const getDoctors = asyncHandler(async (req, res) => {
 
     const formattedDoctors = doctors.map(doc => ({
         id: doc._id,
-        name: doc.user?.name,
-        image: doc.user?.image || doc.image,
+        name: doc.user?.name || "Unknown Doctor",
+        image: doc.user?.image || doc.image || "/default-avatar.jpg",
         speciality: doc.speciality,
         degree: doc.degree,
         fees: doc.fees,
@@ -86,13 +99,13 @@ export const getDoctors = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         count: formattedDoctors.length,
+        totalCount: totalCount,
+        totalPages: Math.ceil(totalCount / (req.query.limit || 10)),
+        currentPage: parseInt(req.query.page) || 1,
         data: formattedDoctors,
     });
 });
 
-// ------------------------------
-// Get Doctor by ID
-// ------------------------------
 export const getDoctorById = asyncHandler(async (req, res, next) => {
     const doctor = await DoctorProfile.findById(req.params.id).populate("user", "-password");
 
@@ -106,9 +119,6 @@ export const getDoctorById = asyncHandler(async (req, res, next) => {
     });
 });
 
-// ------------------------------
-// Update Doctor Profile
-// ------------------------------
 export const updateDoctorProfile = asyncHandler(async (req, res, next) => {
     const currentUser = getCurrentUser(req);
 
@@ -146,9 +156,6 @@ export const updateDoctorProfile = asyncHandler(async (req, res, next) => {
     });
 });
 
-// ------------------------------
-// Delete Doctor (Admin only)
-// ------------------------------
 export const deleteDoctor = asyncHandler(async (req, res, next) => {
     const currentUser = getCurrentUser(req);
 

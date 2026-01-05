@@ -5,9 +5,9 @@ export const useDoctorQuery = (queryParams = {}) => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [count, setCount] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);  // ← Add this
+    const [currentPageCount, setCurrentPageCount] = useState(0);
 
-    // build query string from queryParams
     const buildQueryString = (params) => {
         const qs = new URLSearchParams(params).toString();
         return qs ? `?${qs}` : "";
@@ -19,10 +19,14 @@ export const useDoctorQuery = (queryParams = {}) => {
         try {
             const queryString = buildQueryString(queryParams);
             const res = await api.get(`/doctor${queryString}`);
-            setDoctors(res.data.data);
-            setCount(res.data.count);
+
+            setDoctors(res.data.data || []);
+            setCurrentPageCount(res.data.count || 0);
+            setTotalCount(res.data.totalCount || 0);  // ← Extract totalCount
         } catch (err) {
             setError(err.response?.data?.message || err.message || "Error fetching doctors");
+            setDoctors([]);
+            setTotalCount(0);
         } finally {
             setLoading(false);
         }
@@ -30,9 +34,16 @@ export const useDoctorQuery = (queryParams = {}) => {
 
     useEffect(() => {
         fetchDoctors();
-    }, [JSON.stringify(queryParams)]); // refetch when queryParams change
+    }, [JSON.stringify(queryParams)]);
 
-    return { doctors, loading, error, count, refetch: fetchDoctors };
+    return {
+        doctors,
+        loading,
+        error,
+        totalCount,           // ← Return this
+        count: currentPageCount,
+        refetch: fetchDoctors
+    };
 };
 
 
@@ -62,7 +73,7 @@ export const useDoctorByIdQuery = (id) => {
 
     useEffect(() => {
         if (id) fetchDoctorById();
-    }, [id]); 
+    }, [id]);
 
     return { doctor, loading, error, refetch: fetchDoctorById };
 };
