@@ -15,11 +15,9 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Main public pages (with full site layout, header, navbar, etc.) */}
         <Route element={<PublicLayout />}>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.ABOUT} element={<About />} />
-          {/* <Route path={ROUTES.CONTACT} element={<DoctorDetailPage />} /> */}
           <Route path={ROUTES.DOCTOR} element={<Doctor />} />
           <Route path={ROUTES.DOCTOR + "/:id"} element={<DoctorDetailPage />} />
           {/* You can add a redirect or fallback if needed */}

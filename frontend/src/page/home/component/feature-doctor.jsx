@@ -1,6 +1,6 @@
 import React from 'react';
-import DoctorCard from '../../../component/card';
 import { useDoctorQuery } from '../../../services/query/doctor.query';
+import DoctorCard from '../../../component/card';
 
 function DoctorGrid() {
   const { doctors, loading, error } = useDoctorQuery({ limit: 4 });

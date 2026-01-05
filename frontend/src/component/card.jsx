@@ -1,94 +1,48 @@
 import React from 'react';
+import { Calendar } from 'lucide-react';
+import { Link } from 'react-router';
 
 const DoctorCard = ({ doctor }) => {
   return (
-    <div
-      className="group relative backdrop-blur-xl bg-white/70
-      border border-white/40 rounded-2xl overflow-hidden
-      shadow-lg hover:shadow-2xl transition-all duration-300
-      hover:-translate-y-2"
-    >
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
       {/* Image */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="h-56 w-full overflow-hidden rounded-t-xl">
         <img
           src={doctor.image || '/placeholder.svg'}
           alt={doctor.name}
-          className="w-full h-full object-cover
-          transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover"
         />
-
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
-
-        {/* Speciality Badge */}
-        <div
-          className="absolute bottom-4 left-4 px-4 py-1.5
-          rounded-full text-sm font-semibold
-          bg-white/80 backdrop-blur-md
-          text-blue-700 shadow-md"
-        >
-          {doctor.speciality}
-        </div>
       </div>
 
       {/* Content */}
-      <div className="p-6 flex flex-col space-y-4">
-        <h3 className="text-xl font-bold text-gray-800 text-center">
-          {doctor.name}
-        </h3>
+      <div className="p-4 space-y-3">
+        {/* Name */}
+        <h3 className="text-lg font-semibold text-gray-800">{doctor.name}</h3>
 
-        {/* Qualification */}
-        <div className="flex justify-between items-center border-b border-gray-200/70 pb-2">
-          <span className="text-gray-600 text-sm font-medium">
-            Qualification
-          </span>
-          <span className="font-semibold text-gray-800">{doctor.degree}</span>
+        {/* Degree */}
+        <p className="text-gray-600 text-sm">{doctor.degree}</p>
+
+        {/* Speciality */}
+        <span className="inline-block text-sm font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded-full">
+          {doctor.speciality}
+        </span>
+
+        {/* Fees */}
+        <div className="flex justify-between items-center text-gray-700 text-sm mt-2">
+          <span>Consultation Fee:</span>
+          <span className="font-semibold text-gray-900">Rs. {doctor.fees}</span>
         </div>
 
-        {/* Fee */}
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 text-sm font-medium">
-            Consultation Fee
-          </span>
-          <span className="text-lg font-bold text-blue-600">
-            Rs. {doctor.fees}
-          </span>
-        </div>
-
-        {/* Action */}
-        <button
-          className="mt-2 w-full py-3 rounded-xl
-          bg-linear-to-r from-blue-500 to-blue-600
-          hover:from-blue-600 hover:to-blue-700
-          text-white font-semibold
-          shadow-lg hover:shadow-xl
-          transition-all duration-300
-          flex items-center justify-center gap-2
-          hover:scale-[1.03]"
-        >
-          <CalendarIcon />
-          Book Appointment
-        </button>
+        {/* Button */}
+        <Link to={`/doctor/${doctor.id}`}>
+          <button className="mt-3 w-full py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Book Appointment
+          </button>
+        </Link>
       </div>
     </div>
   );
 };
 
 export default DoctorCard;
-
-/* Icon */
-const CalendarIcon = () => (
-  <svg
-    className="w-5 h-5"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);

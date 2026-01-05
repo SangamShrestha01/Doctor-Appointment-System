@@ -1,6 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-
 import {
   MapPin,
   Calendar,
@@ -10,176 +8,90 @@ import {
   ArrowLeft,
   Icon,
 } from 'lucide-react';
-import { glass } from './glass';
-import BookingForm from '../../../component/booking';
-
-const doctorDetails = {
-  user: {
-    name: 'Dr. Doctor 10',
-  },
-  speciality: 'Gastroenterologist',
-  degree: 'MBBS, MD',
-  experience: 1,
-  fees: 769,
-  address: {
-    city: 'Kathmandu',
-    hospital: 'City Care Hospital',
-  },
-  availability: {
-    Monday: ['10:00', '12:00', '15:00'],
-    Wednesday: ['11:00', '14:00'],
-    Friday: ['09:00', '13:00'],
-  },
-  image: 'https://i.pravatar.cc/300?img=19',
-};
+import { Link, useParams } from 'react-router';
+import { useDoctorByIdQuery } from '../../../services/query/doctor.query';
+import { BookingForm } from '../../../component/booking';
+import HospitalCard from './component/hospital';
+import AboutDoctorCard from './component/about';
+import AvailabilityCard from './component/availibilty';
 
 export default function DoctorDetailPage() {
+  const { id } = useParams();
+  const { doctor, loading, error } = useDoctorByIdQuery(id);
+
+  if (loading) return <p className="text-center py-20">Loading...</p>;
+  if (error) return <p className="text-center text-red-500">{error}</p>;
+  if (!doctor) return null;
+
   return (
-    <>
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
-        {/* Back */}
-        <div className="py-4">
-          <div className="max-w-7xl mx-auto px-4">
-            <Link
-              href="/doctors"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Doctors
-            </Link>
-          </div>
+    <main className="min-h-screen bg-slate-50">
+      {/* Back */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <Link
+            href="/doctors"
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Doctors
+          </Link>
         </div>
+      </div>
 
-        {/* Profile */}
-        <section className="py-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* LEFT */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Doctor Info */}
-                <div className={`${glass} p-6`}>
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <img
-                      src={doctorDetails.image}
-                      className="w-44 h-44 rounded-xl object-cover"
-                    />
+      {/* Content */}
+      <section className="max-w-7xl mx-auto px-4 py-10 grid lg:grid-cols-3 gap-8">
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Doctor Card */}
+          <div className="bg-white rounded-2xl shadow p-6 flex gap-6">
+            <img
+              src={doctor.user.image}
+              className="w-40 h-40 rounded-xl object-cover"
+            />
 
-                    <div className="space-y-4 flex-1">
-                      <div>
-                        <h1 className="text-3xl font-bold text-gray-800">
-                          {doctorDetails.user.name}
-                        </h1>
-                        <p className="text-blue-600">{doctorDetails.degree}</p>
-                      </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold">{doctor.user.name}</h1>
+              <p className="text-blue-600 font-semibold">{doctor.speciality}</p>
 
-                      <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
-                        {doctorDetails.speciality}
-                      </span>
-
-                      <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-700">
-                        <Info
-                          icon={Calendar}
-                          text={`${doctorDetails.experience} year experience`}
-                        />
-                        <Info
-                          icon={DollarSign}
-                          text={`Rs. ${doctorDetails.fees} / visit`}
-                        />
-                        <Info icon={MapPin} text={doctorDetails.address.city} />
-                        <Info
-                          icon={GraduationCap}
-                          text={doctorDetails.degree}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hospital */}
-                <div className={`${glass} p-6`}>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                    <MapPin className="h-5 w-5 text-blue-500" />
-                    Hospital & Location
-                  </h3>
-                  <p>
-                    <strong>Hospital:</strong> {doctorDetails.address.hospital}
-                  </p>
-                  <p>
-                    <strong>City:</strong> {doctorDetails.address.city}
-                  </p>
-                </div>
-
-                {/* Availability */}
-                <div className={`${glass} p-6`}>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                    <Clock className="h-5 w-5 text-blue-500" />
-                    Available Time Slots
-                  </h3>
-
-                  {Object.entries(doctorDetails.availability).map(
-                    ([day, times]) => (
-                      <div key={day} className="mb-4">
-                        <h4 className="font-semibold text-blue-600 mb-2">
-                          {day}
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {times.map((time) => (
-                            <span
-                              key={time}
-                              className="px-3 py-1.5 rounded-full bg-white/80 border border-blue-200 text-blue-700 text-sm"
-                            >
-                              {time}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-
-                {/* About */}
-                <div className={`${glass} p-6`}>
-                  <h3 className="text-lg font-semibold mb-2">
-                    About the Speciality
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    Dr. {doctorDetails.user.name.split(' ').pop()} is a{' '}
-                    {doctorDetails.speciality} with {doctorDetails.experience}{' '}
-                    year of experience. Available at{' '}
-                    {doctorDetails.address.hospital},{' '}
-                    {doctorDetails.address.city}.
-                  </p>
-                </div>
-              </div>
-
-              {/* RIGHT */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-20">
-                  <div className={`${glass} p-6`}>
-                    <h3 className="flex items-center gap-2 text-lg font-semibold mb-4">
-                      <Clock className="h-5 w-5 text-blue-500" />
-                      Book Appointment
-                    </h3>
-
-                    <BookingForm
-                      doctorName={doctorDetails.user.name}
-                      availability={doctorDetails.availability}
-                      fees={doctorDetails.fees}
-                    />
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
+                <Info IconComp={Calendar}>2 years</Info>
+                <Info IconComp={DollarSign}>₹500</Info>
+                <Info IconComp={MapPin}>Kathmandu</Info>
+                <Info IconComp={GraduationCap}>MBBS</Info>
               </div>
             </div>
           </div>
-        </section>
-      </main>
-    </>
+
+          <HospitalCard doctor={doctor} />
+          <AvailabilityCard availability={doctor.availability} />
+          <AboutDoctorCard doctor={doctor} />
+        </div>
+
+        {/* Right */}
+        <div className="sticky top-20 h-fit bg-white rounded-2xl shadow p-6">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-blue-600" />
+            Book Appointment
+          </h3>
+
+          <BookingForm
+            doctorId={id}
+            availability={doctor.availability}
+            fees={doctor.fees}
+          />
+        </div>
+      </section>
+    </main>
   );
 }
 
-const Info = ({ icon: Icon, text }) => (
-  <div className="flex items-center gap-2">
-    <Icon className="h-4 w-4 text-blue-500" />
-    <span>{text}</span>
-  </div>
-);
+function Info({ IconComp, children }) {
+  if (!IconComp) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <IconComp className="w-4 h-4 text-blue-600" />
+      <span>{children}</span>
+    </div>
+  );
+}
