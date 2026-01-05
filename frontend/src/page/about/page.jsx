@@ -9,43 +9,40 @@ import {
   Briefcase,
   Clock,
 } from 'lucide-react';
+import { useDoctorByIdQuery } from '../../services/query/doctor.query';
 
 // Sample doctor data (replace with API fetch in real app)
-const doctorData = {
-  '6953b76f97762271a15e8778': {
-    _id: '6953b76f97762271a15e8778',
-    user: {
-      _id: '6953b76f97762271a15e8776',
-      name: 'Dr. Doctor 10',
-      email: 'doctor10@mail.com',
-      address: 'Kathmandu, Nepal',
-      image: 'https://i.pravatar.cc/150?img=19',
-      role: 'Doctor',
-    },
-    speciality: 'Gastroenterologist',
-    degree: 'MBBS, MD',
-    experience: 1,
-    fees: 769,
-    address: {
-      city: 'Kathmandu',
-      hospital: 'City Care Hospital',
-    },
-    availability: {
-      Monday: ['10:00', '12:00', '15:00'],
-      Wednesday: ['11:00', '14:00'],
-      Friday: ['09:00', '13:00'],
-    },
-  },
-};
 
 const DoctorDetailPage = () => {
-  const { id } = useParams(); // Get ID from URL (e.g., /doctor/6953b76f97762271a15e8778)
+  const { id } = useParams();
+
+  const { doctor, loading, error } = useDoctorByIdQuery(id);
+
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedSlot, setSelectedSlot] = useState('');
 
-  // Fetch doctor (fallback to first if ID not found)
-  const doctor = doctorData[id] || doctorData['6953b76f97762271a15e8778'];
-  const availability = Object.entries(doctor.availability);
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
+        Loading doctor details...
+      </div>
+    );
+  }
+
+  // ✅ Error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600 font-semibold">
+        {error}
+      </div>
+    );
+  }
+
+  // ✅ Safety check
+  if (!doctor) return null;
+
+  const availability = Object.entries(doctor.availability || {});
 
   return (
     <main className="w-full min-h-screen bg-slate-50">

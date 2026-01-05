@@ -34,3 +34,36 @@ export const useDoctorQuery = (queryParams = {}) => {
 
     return { doctors, loading, error, count, refetch: fetchDoctors };
 };
+
+
+
+
+export const useDoctorByIdQuery = (id) => {
+    const [doctor, setDoctor] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchDoctorById = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await api.get(`/doctor/${id}`);
+            setDoctor(res.data.data);
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Error fetching doctor"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (id) fetchDoctorById();
+    }, [id]); 
+
+    return { doctor, loading, error, refetch: fetchDoctorById };
+};
+

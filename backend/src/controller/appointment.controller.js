@@ -5,61 +5,74 @@ import { Appointment } from "../model/appointment.model.js";
 
 // Helper to get current logged-in user
 const getCurrentUser = (req) => req.user;
-
-// 1. Book Appointment (Patient only)
 export const bookAppointment = asyncHandler(async (req, res, next) => {
     const currentUser = getCurrentUser(req);
-    console.log("currentUser", currentUser);
+
     if (!currentUser || currentUser.role !== "Patient") {
         return next(new AppError(403, "Only patients can book appointments"));
     }
 
-    const { doctorId, date, time, reason } = req.body;
-    if (!doctorId || !date || !time) {
-        return next(new AppError(400, "Doctor ID, date, and time are required"));
+    const { doctorId, weekday, time, reason } = req.body;
+    if (!doctorId || !weekday || !time) {
+        return next(new AppError(400, "Doctor ID, weekday, and time are required"));
     }
 
-    const doctor = await DoctorProfile.findById(doctorId)
-        .populate("user", "-password");
-
+    // Find doctor
+    const doctor = await DoctorProfile.findById(doctorId).populate("user", "-password");
     if (!doctor) return next(new AppError(404, "Doctor not found"));
     if (doctor.user.role !== "Doctor") return next(new AppError(400, "Not a doctor"));
 
-    const dateObj = new Date(date);
-    const dayIndex = dateObj.getDay();
-    const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const weekday = weekdays[dayIndex];
+    // Capitalize weekday to match availability keys
+    const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1).toLowerCase();
 
-    const availableSlots = doctor.availability.get(weekday) || [];
+    // Check if slot exists for this weekday
+    const availableSlots = doctor.availability.get(capitalizedWeekday) || [];
     if (!availableSlots.includes(time)) {
-        return next(new AppError(400, "This time slot is not available for this weekday"));
+        return next(new AppError(400, `This time slot is not available on ${capitalizedWeekday}`));
     }
 
-    const slotKey = `${date}-${time}`;
-    if (doctor.slot_booked.includes(slotKey)) {
+    // Find next date that matches the selected weekday
+    const today = new Date();
+    let appointmentDate = new Date(today);
+    const weekdayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(capitalizedWeekday);
+
+    while (appointmentDate.getDay() !== weekdayIndex) {
+        appointmentDate.setDate(appointmentDate.getDate() + 1);
+    }
+
+    // Set appointment time
+    const [hours, minutes] = time.split(":").map(Number);
+    appointmentDate.setHours(hours, minutes, 0, 0);
+
+    // Generate slot key (exact date + time)
+    const slotKey = appointmentDate.toISOString(); // e.g., "2026-01-08T11:00:00.000Z"
+
+    // Check if slot already booked
+    const existingAppointment = await Appointment.findOne({
+        doctor: doctor._id,
+        appointmentDateTime: appointmentDate,
+    });
+    if (existingAppointment) {
         return next(new AppError(400, "This time slot is already booked"));
     }
 
-    const appointmentDateTime = new Date(`${date}T${time}:00`);
-    if (isNaN(appointmentDateTime.getTime())) {
-        return next(new AppError(400, "Invalid date or time format"));
-    }
-    console.log("jajajjaj", currentUser._id);
-
+    // Create appointment
     const appointment = await Appointment.create({
         patient: currentUser.id,
         doctor: doctor._id,
-        date,
+        date: appointmentDate.toISOString().split("T")[0], // "YYYY-MM-DD"
         time,
-        appointmentDateTime,
+        appointmentDateTime: appointmentDate,
         fees: doctor.fees,
         reason,
         status: "Pending",
     });
 
+    // Save slot in doctor model (for reference)
     doctor.slot_booked.push(slotKey);
     await doctor.save();
 
+    // Populate response
     const populatedAppointment = await Appointment.findById(appointment._id)
         .populate("patient", "name email image")
         .populate("doctor", "user");
@@ -70,6 +83,9 @@ export const bookAppointment = asyncHandler(async (req, res, next) => {
         data: populatedAppointment,
     });
 });
+
+
+
 
 export const getMyAppointments = asyncHandler(async (req, res, next) => {
     const currentUser = getCurrentUser(req);
