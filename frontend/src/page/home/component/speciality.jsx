@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 
 // Map each specialty to a solid icon
 const specialtyIcons = {
@@ -16,6 +17,17 @@ const specialtyIcons = {
 };
 
 function Speciality({ specialties }) {
+  const navigate = useNavigate();
+  const [searchParam, setSearchParam] = useSearchParams();
+
+  const handleSpecialtyClick = (specialty) => {
+    if (specialty) {
+      searchParam.set('speciality', specialty);
+      setSearchParam(searchParam);
+      navigate(`/doctor?${searchParam}`);
+    }
+  };
+
   return (
     <section className="w-full py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -34,9 +46,10 @@ function Speciality({ specialties }) {
           {/* Horizontal Scroll */}
           <div className="flex space-x-4 overflow-x-auto pt-8 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             {specialties.map((name) => (
-              <div
+              <button
+                onClick={() => handleSpecialtyClick(name)}
                 key={name}
-                className="shrink-0 group flex flex-col items-center justify-center p-6 min-w-[140px] rounded-lg border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+                className="shrink-0 group flex flex-col items-center justify-center p-6 min-w-35 rounded-lg border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
               >
                 <span className="text-4xl mb-3">
                   {specialtyIcons[name] || '❓'}
@@ -44,7 +57,7 @@ function Speciality({ specialties }) {
                 <p className="text-center font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-sm md:text-base">
                   {name}
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
