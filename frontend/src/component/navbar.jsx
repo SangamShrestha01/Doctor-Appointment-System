@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, HeartPulse } from 'lucide-react';
 import { NAV_LINKS } from '../constant/nav';
 import { ROUTES } from '../constant/route';
+import AuthContext from '../context/auth-context';
+import ConfirmModal from './modal';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const location = useLocation();
+  const { isAuthenticated, user, logout } = useContext(AuthContext);
+  console.log(isAuthenticated, user);
 
   const isActive = (path) => location.pathname === path;
 
@@ -40,19 +46,47 @@ const Header = () => {
           </nav>
 
           {/* Desktop Auth Links */}
+          {/* Desktop Auth Links */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to={ROUTES.LOGIN}
-              className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              to={ROUTES.REGISTER}
-              className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <>
+                {/* Profile Image */}
+                <img
+                  src={user?.image || '/avatar.png'}
+                  alt="Profile"
+                  className="w-9 h-9 rounded-full object-cover border border-slate-200"
+                />
+
+                {/* User Name
+                <span className="text-sm font-medium text-slate-700">
+                  Hello, {user?.name || 'User'}
+                </span> */}
+
+                {/* Logout Button */}
+                <button
+                  onClick={() => setShowLogoutModal(true)}
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to={ROUTES.LOGIN}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to={ROUTES.REGISTER}
+                  className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -105,6 +139,17 @@ const Header = () => {
             </Link>
           </div>
         </div>
+      )}
+
+      {showLogoutModal && (
+        <ConfirmModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={logout}
+          title="Confirm Logout"
+          message="Are you sure you want to logout?"
+          confirmText="Logout"
+        />
       )}
     </header>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -6,9 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../../../schemas/login';
 import { loginUser } from '../../../services/mutatation/auth.mutation';
 import { ROUTES } from '../../../constant/route';
+import { toast } from 'react-toastify';
+import AuthContext from '../../../context/auth-context';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const {
     register,
@@ -22,14 +25,13 @@ const Login = () => {
     try {
       const res = await loginUser(data);
 
-      // store token and user in localStorage
-      localStorage.setItem('authToken', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data));
+      // update AuthContext state
+      login(res.data, res.data.token);
 
-      alert('Logged in successfully!');
+      toast.success('Logged in successfully!');
       navigate(ROUTES.HOME);
     } catch (err) {
-      alert(err.message || 'Login failed');
+      toast.error(err.message || 'Login failed');
     }
   };
 

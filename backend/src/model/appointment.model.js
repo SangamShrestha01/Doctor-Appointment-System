@@ -9,7 +9,7 @@ const appointmentSchema = new mongoose.Schema(
         },
         doctor: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User", // References User with role: "Doctor"
+            ref: "DoctorProfile", // References User with role: "Doctor"
             required: [true, "Doctor is required"],
         },
         date: {
