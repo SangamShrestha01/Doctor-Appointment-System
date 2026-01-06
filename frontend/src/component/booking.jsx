@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useBookAppointment } from '../services/mutatation/booking';
+import { useInitiatePayment } from '../services/mutatation/payment.mutations';
 import 'react-toastify/dist/ReactToastify.css';
 
 export function BookingForm({
@@ -15,8 +16,8 @@ export function BookingForm({
   const [reason, setReason] = useState('');
 
   const { bookAppointment, loading } = useBookAppointment();
+  const { initiatePayment } = useInitiatePayment();
 
-  // Normalize availability keys to lowercase for consistency
   const normalizedAvailability = useMemo(() => {
     const normalized = {};
     if (!availability) return normalized;
@@ -26,7 +27,6 @@ export function BookingForm({
     return normalized;
   }, [availability]);
 
-  // List of weekdays with available times
   const weekdays = useMemo(
     () => Object.keys(normalizedAvailability),
     [normalizedAvailability]
@@ -34,48 +34,75 @@ export function BookingForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!selectedWeekday || !selectedTime) {
       toast.error('Please select a weekday and time');
       return;
     }
-
+    // Inside handleSubmit
     try {
-      await bookAppointment({
+      // 1️⃣ Book appointment
+      const res = await bookAppointment({
         doctorId,
         weekday: selectedWeekday,
         time: selectedTime,
         reason,
       });
 
-      toast.success('Appointment booked successfully!');
+      const appointmentId = res.data._id || res.data.appointment?._id;
+      toast.success(
+        'Appointment booked successfully! Redirecting to payment...'
+      );
 
-      // Reset selection
-      setSelectedWeekday('');
-      setSelectedTime('');
-      setReason('');
+      // 2️⃣ Initiate payment
+      const formHtml = await initiatePayment(appointmentId);
+
+      // 3️⃣ Parse backend HTML and submit manually
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(formHtml, 'text/html');
+      const backendForm = doc.querySelector('form');
+
+      if (!backendForm) throw new Error('No form returned from backend');
+
+      // Create a new form in DOM
+      const form = document.createElement('form');
+      form.action = backendForm.action;
+      form.method = backendForm.method || 'POST';
+      form.style.display = 'none'; // hide form from user
+      document.body.appendChild(form);
+
+      // Copy all input fields
+      Array.from(backendForm.querySelectorAll('input')).forEach((input) => {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = input.name;
+        hiddenInput.value = input.value;
+        form.appendChild(hiddenInput);
+      });
+
+      // ✅ Submit form to eSewa (browser will redirect)
+      form.submit();
     } catch (err) {
       toast.error(
-        err.response?.data?.message || err.message || 'Booking failed'
+        err.response?.data?.message || err.message || 'Booking/payment failed'
       );
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Weekday Selection */}
+      {/* Weekday */}
       <div>
         <p className="text-sm font-semibold text-slate-700 mb-2">Select Day</p>
         <div className="grid grid-cols-2 gap-2">
           {weekdays.map((day) => {
             const times = normalizedAvailability[day] || [];
             const isDisabled = times.length === 0;
-
             return (
               <button
                 key={day}
                 type="button"
                 onClick={() => !isDisabled && setSelectedWeekday(day)}
+                disabled={isDisabled}
                 className={`py-2 rounded-lg text-sm font-medium border transition
                   ${
                     selectedWeekday === day
@@ -86,9 +113,7 @@ export function BookingForm({
                     isDisabled
                       ? 'opacity-50 cursor-not-allowed'
                       : 'hover:border-blue-500 hover:bg-blue-50'
-                  }
-                `}
-                disabled={isDisabled}
+                  }`}
               >
                 {day.charAt(0).toUpperCase() + day.slice(1)}
               </button>
@@ -97,7 +122,7 @@ export function BookingForm({
         </div>
       </div>
 
-      {/* Time Selection */}
+      {/* Time */}
       {selectedWeekday && (
         <div>
           <p className="text-sm font-semibold text-slate-700 mb-2">
@@ -107,7 +132,6 @@ export function BookingForm({
             {(normalizedAvailability[selectedWeekday] || []).map((time) => {
               const slotKey = `${selectedWeekday}-${time}`;
               const isBooked = slot_booked.includes(slotKey);
-
               return (
                 <button
                   key={time}
@@ -120,8 +144,7 @@ export function BookingForm({
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-slate-50 border-slate-300 hover:bg-blue-50'
                     }
-                    ${isBooked ? 'opacity-50 cursor-not-allowed' : ''}
-                  `}
+                    ${isBooked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {time} {isBooked && '(Booked)'}
                 </button>
