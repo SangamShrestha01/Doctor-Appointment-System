@@ -1,6 +1,4 @@
-// services/mutatation/payment.js
 import { useState } from "react";
-import axios from "axios";
 import api from "../../api/api";
 
 export function useInitiatePayment() {
@@ -11,13 +9,8 @@ export function useInitiatePayment() {
             setLoading(true);
             const res = await api.post("/payment/initiate", { appointmentId });
             setLoading(false);
-
-            if (res.data.success) {
-                // return payment data
-                return res.data.data;
-            } else {
-                throw new Error(res.data.message || "Payment initiation failed");
-            }
+            if (!res.data.success) throw new Error(res.data.message || "Payment initiation failed");
+            return res.data.data; // returns form HTML
         } catch (err) {
             setLoading(false);
             throw err;

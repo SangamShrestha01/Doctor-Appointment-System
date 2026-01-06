@@ -32,45 +32,39 @@ export function BookingForm({
     [normalizedAvailability]
   );
 
+  // Only showing the handleSubmit part related to payment redirect
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedWeekday || !selectedTime) {
-      toast.error('Please select a weekday and time');
+      toast.error('Select day & time');
       return;
     }
-    // Inside handleSubmit
     try {
-      // 1️⃣ Book appointment
+      // Book appointment
       const res = await bookAppointment({
         doctorId,
         weekday: selectedWeekday,
         time: selectedTime,
         reason,
       });
-
       const appointmentId = res.data._id || res.data.appointment?._id;
-      toast.success(
-        'Appointment booked successfully! Redirecting to payment...'
-      );
+      toast.success('Appointment booked! Redirecting to payment...');
 
-      // 2️⃣ Initiate payment
+      // Initiate payment
       const formHtml = await initiatePayment(appointmentId);
 
-      // 3️⃣ Parse backend HTML and submit manually
+      // Parse backend HTML and submit
       const parser = new DOMParser();
       const doc = parser.parseFromString(formHtml, 'text/html');
       const backendForm = doc.querySelector('form');
+      if (!backendForm) throw new Error('No payment form returned');
 
-      if (!backendForm) throw new Error('No form returned from backend');
-
-      // Create a new form in DOM
       const form = document.createElement('form');
       form.action = backendForm.action;
       form.method = backendForm.method || 'POST';
-      form.style.display = 'none'; // hide form from user
+      form.style.display = 'none';
       document.body.appendChild(form);
 
-      // Copy all input fields
       Array.from(backendForm.querySelectorAll('input')).forEach((input) => {
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
@@ -79,9 +73,9 @@ export function BookingForm({
         form.appendChild(hiddenInput);
       });
 
-      // ✅ Submit form to eSewa (browser will redirect)
       form.submit();
     } catch (err) {
+      console.error('Booking/payment error:', err);
       toast.error(
         err.response?.data?.message || err.message || 'Booking/payment failed'
       );
