@@ -1,43 +1,66 @@
-import React, { useContext, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, HeartPulse } from 'lucide-react';
-import { NAV_LINKS } from '../constant/nav';
-import { ROUTES } from '../constant/route';
-import AuthContext from '../context/auth-context';
-import ConfirmModal from './modal';
+import React, { useContext, useState, useRef, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, HeartPulse, ChevronDown } from "lucide-react";
+import { NAV_LINKS } from "../constant/nav";
+import { ROUTES } from "../constant/route";
+import AuthContext from "../context/auth-context";
+import ConfirmModal from "./modal";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [profileMode, setProfileMode] = useState(false);
 
-  const location = useLocation();
   const { isAuthenticated, user, logout } = useContext(AuthContext);
-  console.log(isAuthenticated, user);
+  const location = useLocation();
+  const profileRef = useRef(null);
+  const panelRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target) &&
+        panelRef.current &&
+        !panelRef.current.contains(e.target)
+      ) {
+        setShowProfileMenu(false);
+        setProfileMode(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+
           {/* Logo */}
           <Link to={ROUTES.HOME} className="flex items-center gap-2">
-            <div className="bg-blue-600 p-1.5 rounded-lg">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl">
               <HeartPulse className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               MedConnect
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex gap-8">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                  isActive(link.path) ? 'text-blue-600' : 'text-slate-600'
+                className={`text-sm font-semibold ${
+                  isActive(link.path)
+                    ? "text-blue-600"
+                    : "text-slate-600 hover:text-blue-600"
                 }`}
               >
                 {link.label}
@@ -45,102 +68,112 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Desktop Auth Links */}
-          {/* Desktop Auth Links */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (
-              <>
-                {/* Profile Image */}
-                <img
-                  src={user?.image || '/avatar.png'}
-                  alt="Profile"
-                  className="w-9 h-9 rounded-full object-cover border border-slate-200"
-                />
+              <div ref={profileRef} className="relative">
 
-                {/* User Name
-                <span className="text-sm font-medium text-slate-700">
-                  Hello, {user?.name || 'User'}
-                </span> */}
-
-                {/* Logout Button */}
+                {/* Avatar */}
                 <button
-                  onClick={() => setShowLogoutModal(true)}
-                  className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-2"
                 >
-                  Logout
+                  <img
+                    src={user?.image || "/avatar.png"}
+                    alt="Profile"
+                    className="w-9 h-9 rounded-full ring-2 ring-blue-500/50"
+                  />
+                  <ChevronDown
+                    className={`w-4 h-4 transition ${
+                      showProfileMenu ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
-              </>
+
+                {/* Dropdown */}
+                {showProfileMenu && (
+                  <div className="absolute right-0 top-12 w-56 bg-white rounded-xl shadow-xl overflow-hidden animate-dropdown">
+                    <div className="px-4 py-3 bg-slate-50">
+                      <p className="text-sm font-semibold">{user?.name}</p>
+                      <p className="text-xs text-slate-500">{user?.email}</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setProfileMode(true);
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-slate-100"
+                    >
+                      👤 My Profile
+                    </button>
+
+                    <Link
+                      to={ROUTES.EDIT_PROFILE}
+                      onClick={() => setShowProfileMenu(false)}
+                      className="w-full text-left px-4 py-3 hover:bg-slate-100 block"
+                    >
+                      ✏️ Edit Profile
+                    </Link>
+
+                    {/* ✅ My Appointments */}
+                   
+                      <Link
+                        to="/patient/appointments"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="w-full text-left px-4 py-3 hover:bg-slate-100 block"
+                      >
+                        📅 My Appointments
+                      </Link>
+                   
+
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowLogoutModal(true);
+                      }}
+                      className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
-                <Link
-                  to={ROUTES.LOGIN}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  to={ROUTES.REGISTER}
-                  className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-full hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
-                >
-                  Get Started
-                </Link>
+                <Link to={ROUTES.LOGIN}>Login</Link>
+                <Link to={ROUTES.REGISTER}>Register</Link>
               </>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-slate-600 hover:text-blue-600 p-2"
-            >
-              {isOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
+          {/* Mobile toggle */}
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden">
+            {isOpen ? <X /> : <Menu />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-6 space-y-1 shadow-xl">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              onClick={() => setIsOpen(false)}
-              className={`block px-3 py-3 rounded-lg text-base font-medium ${
-                isActive(link.path)
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-4 flex flex-col gap-3">
-            <Link
-              to={ROUTES.LOGIN}
-              onClick={() => setIsOpen(false)}
-              className="w-full text-center py-3 text-slate-700 font-medium border border-slate-200 rounded-lg"
-            >
-              Login
-            </Link>
-            <Link
-              to={ROUTES.REGISTER}
-              onClick={() => setIsOpen(false)}
-              className="w-full text-center py-3 bg-blue-600 text-white font-semibold rounded-lg"
-            >
-              Register
-            </Link>
-          </div>
+      {/* Profile Panel */}
+      {profileMode && (
+        <div
+          ref={panelRef}
+          className="absolute right-6 top-20 z-40 w-[360px] bg-white rounded-2xl shadow-xl border p-5 animate-panel"
+        >
+          <h3 className="text-lg font-bold mb-2">My Profile</h3>
+          <p><b>Name:</b> {user?.name}</p>
+          <p><b>Email:</b> {user?.email}</p>
+
+          <button
+            onClick={() => setProfileMode(false)}
+            className="mt-4 w-full bg-blue-600 text-white py-2 rounded-xl"
+          >
+            Close
+          </button>
         </div>
       )}
 
+      {/* Logout Modal */}
       {showLogoutModal && (
         <ConfirmModal
           isOpen={showLogoutModal}
@@ -151,6 +184,26 @@ const Header = () => {
           confirmText="Logout"
         />
       )}
+
+      {/* Animations */}
+      <style>
+        {`
+          .animate-panel,
+          .animate-dropdown {
+            animation: dropdown 0.2s ease-out forwards;
+          }
+          @keyframes dropdown {
+            from {
+              opacity: 0;
+              transform: translateY(-8px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+        `}
+      </style>
     </header>
   );
 };

@@ -10,7 +10,7 @@ export function useInitiatePayment() {
             const res = await api.post("/payment/initiate", { appointmentId });
             setLoading(false);
             if (!res.data.success) throw new Error(res.data.message || "Payment initiation failed");
-            return res.data.data; // returns form HTML
+            return res.data.data; 
         } catch (err) {
             setLoading(false);
             throw err;

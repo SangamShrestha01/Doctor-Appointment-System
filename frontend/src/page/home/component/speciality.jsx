@@ -1,7 +1,6 @@
 import React from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-// Map each specialty to a solid icon
 const specialtyIcons = {
   Gastroenterologist: '💊',
   Urologist: '🩺',
@@ -10,7 +9,7 @@ const specialtyIcons = {
   Psychiatrist: '🧠',
   Pediatrician: '👶',
   Orthopedic: '🦴',
-  Neurologist: '🧠',
+  Neurologist: '🧬',
   Dermatologist: '🔬',
   Cardiologist: '❤️',
   'General Physician': '👨‍⚕️',
@@ -24,43 +23,69 @@ function Speciality({ specialties }) {
     if (specialty) {
       searchParam.set('speciality', specialty);
       setSearchParam(searchParam);
-      navigate(`/doctor?${searchParam}`);
+      navigate(`/doctors?${searchParam}`);
     }
   };
 
   return (
-    <section className="w-full py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-white">
+    <section className="w-full py-14 md:py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="space-y-6">
-          {/* Section Header */}
-          <div className="space-y-3 max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-balance">
-              Find by Specialty
-            </h2>
-            <p className="text-lg text-slate-600 leading-relaxed text-pretty">
-              Simply browse through our extensive list of trusted doctors,
-              schedule your appointment hassle-free.
-            </p>
-          </div>
 
-          {/* Horizontal Scroll */}
-          <div className="flex space-x-4 overflow-x-auto pt-8 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            {specialties.map((name) => (
-              <button
-                onClick={() => handleSpecialtyClick(name)}
-                key={name}
-                className="shrink-0 group flex flex-col items-center justify-center p-6 min-w-35 rounded-lg border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
-              >
-                <span className="text-4xl mb-3">
-                  {specialtyIcons[name] || '❓'}
-                </span>
-                <p className="text-center font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-sm md:text-base">
-                  {name}
-                </p>
-              </button>
-            ))}
-          </div>
+        {/* Section Header */}
+        <div className="mb-10 max-w-2xl">
+          <span className="inline-block text-xs font-semibold text-blue-600 uppercase tracking-widest mb-3">
+            Our Specialties
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-3">
+            Find by Specialty
+          </h2>
+          <p className="text-base md:text-lg text-slate-500 leading-relaxed">
+            Browse through our extensive list of trusted doctors and
+            schedule your appointment hassle-free.
+          </p>
         </div>
+
+        {/* Grid on md+, horizontal scroll on mobile */}
+        <div className="
+          flex gap-3 overflow-x-auto pb-3
+          md:grid md:grid-cols-4 md:overflow-visible md:pb-0
+          lg:grid-cols-6
+          scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent
+        ">
+          {specialties.map((name) => (
+            <button
+              key={name}
+              onClick={() => handleSpecialtyClick(name)}
+              className="
+                shrink-0 group flex flex-col items-center justify-center gap-3
+                p-4 md:p-5 w-32 md:w-auto rounded-2xl
+                border-2 border-slate-100 bg-slate-50
+                hover:border-blue-500 hover:bg-blue-50
+                active:scale-95 transition-all duration-200 cursor-pointer
+              "
+            >
+              {/* Icon circle */}
+              <div className="
+                w-12 h-12 md:w-14 md:h-14 rounded-2xl
+                bg-white border border-slate-100 shadow-sm
+                flex items-center justify-center text-2xl md:text-3xl
+                group-hover:shadow-md group-hover:border-blue-100
+                transition-all duration-200
+              ">
+                {specialtyIcons[name] || '🩻'}
+              </div>
+
+              <p className="
+                text-center font-semibold text-slate-700
+                group-hover:text-blue-600 transition-colors
+                text-xs md:text-sm leading-tight
+              ">
+                {name}
+              </p>
+            </button>
+          ))}
+        </div>
+
       </div>
     </section>
   );

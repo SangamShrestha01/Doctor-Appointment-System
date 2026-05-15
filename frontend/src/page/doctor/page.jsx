@@ -1,76 +1,78 @@
-import React, { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import DoctorCard from '../../component/card';
-import { useDoctorQuery } from '../../services/query/doctor.query';
+import React, { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
+import DoctorCard from "../../component/card";
+import { useDoctorQuery } from "../../services/query/doctor.query";
 
 export default function DoctorsPage() {
+  const location = useLocation();
+  const [show, setShow] = useState(false);
+
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read filters from URL
-  const speciality = searchParams.get('speciality') || '';
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  // Animation effect on route change
+  useEffect(() => {
+    setShow(false); // reset animation
+    const timer = setTimeout(() => setShow(true), 50); // trigger fade-in/slide
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
-  // Query parameters for the main doctor list (paginated)
+  const animationClass = "transition-all duration-700 ease-out";
+
+  // Read filters from URL
+  const speciality = searchParams.get("speciality") || "";
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+
+  // Query parameters for paginated doctors
   const query = useMemo(() => {
-    const q = {
-      page,
-      limit: 6,
-    };
+    const q = { page, limit: 6 };
     if (speciality) q.speciality = speciality;
     return q;
   }, [speciality, page]);
 
-  // Fetch paginated doctors
-  const {
-    doctors = [],
-    loading,
-    error,
-    totalCount = 0,
-  } = useDoctorQuery(query);
+  const { doctors = [], loading, error, totalCount = 0 } = useDoctorQuery(query);
 
-  // Calculate total pages correctly
   const totalPages = Math.ceil(totalCount / query.limit);
 
-  // Fetch ALL doctors matching current speciality filter to build stable speciality list
-  // (without pagination — to get all available specialties)
+  // Fetch all doctors for speciality filter
   const allSpecialitiesQuery = useMemo(() => {
-    const q = { limit: 1000 }; // large limit to get all, or create dedicated endpoint later
+    const q = { limit: 1000 };
     if (speciality) q.speciality = speciality;
     return q;
   }, [speciality]);
 
   const { doctors: allDoctors = [] } = useDoctorQuery(allSpecialitiesQuery);
 
-  // Extract and deduplicate specialties
   const availableSpecialties = useMemo(() => {
     const set = new Set();
     allDoctors.forEach((doctor) => {
       if (doctor?.speciality) set.add(doctor.speciality);
     });
-    return Array.from(set).sort(); // optional: sort alphabetically
+    return Array.from(set).sort();
   }, [allDoctors]);
 
   // Handlers
   const handleCategoryClick = (cat) => {
     const newParams = new URLSearchParams(searchParams);
-    if (!cat) {
-      newParams.delete('speciality');
-    } else {
-      newParams.set('speciality', cat);
-    }
-    newParams.set('page', '1'); // reset to page 1
+    if (!cat) newParams.delete("speciality");
+    else newParams.set("speciality", cat);
+    newParams.set("page", "1");
     setSearchParams(newParams);
   };
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
     const newParams = new URLSearchParams(searchParams);
-    newParams.set('page', newPage.toString());
+    newParams.set("page", newPage.toString());
     setSearchParams(newParams);
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main
+      className={`${animationClass} ${
+        show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      } min-h-screen bg-gray-50`}
+      key={location.pathname} // remounts div on route change
+    >
       {/* Header */}
       <section className="bg-blue-100 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,11 +97,11 @@ export default function DoctorsPage() {
               </h3>
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={() => handleCategoryClick('')}
+                  onClick={() => handleCategoryClick("")}
                   className={`text-left px-4 py-2 rounded-lg font-medium transition-colors ${
-                    speciality === ''
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                    speciality === ""
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-gray-100 text-gray-700 border border-gray-200"
                   }`}
                 >
                   All Specialities ({totalCount})
@@ -111,8 +113,8 @@ export default function DoctorsPage() {
                     onClick={() => handleCategoryClick(cat)}
                     className={`text-left px-4 py-2 rounded-lg font-medium transition-colors ${
                       speciality === cat
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-100 text-gray-700 border border-gray-200"
                     }`}
                   >
                     {cat}
@@ -130,19 +132,16 @@ export default function DoctorsPage() {
                   Loading doctors...
                 </p>
               )}
-
               {error && (
                 <p className="col-span-full text-center text-red-600">
                   Error: {error}
                 </p>
               )}
-
               {!loading && doctors.length === 0 && (
                 <p className="col-span-full text-center text-gray-500 text-lg">
                   No doctors found for the selected speciality.
                 </p>
               )}
-
               {doctors.map((doctor) => (
                 <DoctorCard key={doctor.id} doctor={doctor} />
               ))}

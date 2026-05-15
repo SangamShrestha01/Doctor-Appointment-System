@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import { User } from "./model/user.model.js";
 import { DoctorProfile } from "./model/doctor.model.js";
 
@@ -7,78 +8,124 @@ dotenv.config();
 
 /* ---------- DB CONNECTION ---------- */
 export const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log("MongoDB connected");
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log("MongoDB connected successfully");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  }
 };
+
+/* ---------- DOCTOR DATA ---------- */
 const specialities = [
-    "Cardiologist",
-    "Dermatologist",
-    "Neurologist",
-    "Orthopedic",
-    "Pediatrician",
-    "Psychiatrist",
-    "Gynecologist",
-    "ENT Specialist",
-    "Urologist",
-    "Gastroenterologist",
+  "Cardiologist",
+  "Dermatologist",
+  "Neurologist",
+  "Orthopedic Surgeon",
+  "Pediatrician",
+  "Psychiatrist",
+  "Gynecologist",
+  "ENT Specialist",
+  "Urologist",
+  "Gastroenterologist",
 ];
 
+const nepaliDoctorNames = [
+  "Ram Prasad Sharma",
+  "Sita Kumari Thapa",
+  "Bishnu Bahadur Gurung",
+  "Laxmi Devi Shrestha",
+  "Krishna Prasad Pokharel",
+  "Maya Tamang",
+  "Laxmi Khadka",
+  "Sunita Magar",
+  "Hari Kumar Basnet",
+  "Parbati Dahal",
+];
 
-/* ---------- SEED DATA ---------- */
-// const seedDoctors = async () => {
-//     try {
-//         await connectDB();
+const doctorImages = [
+  "https://www.nepalminute.com/uploads/posts/Dr%20Toshima%20Karki1665806173.JPG",
+  "https://media.istockphoto.com/id/171296819/photo/african-american-female-doctor-holding-a-clipboard-isolated.jpg?s=612x612&w=0&k=20&c=hCJk-9gsOff8Fac04a11VMOwflMYiRXUVfAj3UTn67U=",
+  "https://www.nepalmediciti.com/images/doctors/4243.jpg",
+  "https://possiblehealth.org/wp-content/uploads/2015/02/021115_DrJha_headshot-1.jpg",
+  "https://www.akronchildrens.org/images-general/1194080/image/medium/shrestha-sabin-md-web.png",
+  "https://api.cmh.com.np/media/filer_public/ad/cf/adcf3176-472f-42d8-a991-8edbf5f738da/kovid_nepal.jpeg",
+  "https://clinicone.com.np/wp-content/uploads/2019/09/Dr-Reena-Shrestha.jpg",
+  "https://clinicone.com.np/wp-content/uploads/2020/05/Dr.-Mahesh-Dahal-350x300.jpg",
+  "https://clinicone.com.np/wp-content/uploads/2023/12/Dr.-Nabin-Bdr-Basnet-350x300.jpg",
+  "https://www.nepalmediciti.com/images/doctors/8790.jpg",
+];
 
-//         // Clean previous data (optional but recommended)
-//         await User.deleteMany({ role: "Doctor" });
-//         await DoctorProfile.deleteMany();
+/* ---------- SEED DOCTORS ---------- */
+const seedDoctors = async () => {
+  try {
+    await connectDB();
 
-//         const doctors = [];
+    // Remove existing doctor data
+    await User.deleteMany({ role: "Doctor" });
+    await DoctorProfile.deleteMany({});
 
-//         for (let i = 0; i < 10; i++) {
-//             /* ---- Create User ---- */
-//             const user = await User.create({
-//                 name: `Dr. Doctor ${i + 1}`,
-//                 email: `doctor${i + 1}@mail.com`,
-//                 password: "password123",
-//                 address: "Kathmandu, Nepal",
-//                 role: "Doctor",
-//                 image: `https://i.pravatar.cc/150?img=${i + 10}`,
-//             });
+    console.log("✅ Cleared existing doctors. Seeding new doctors...\n");
 
-//             /* ---- Create Doctor Profile ---- */
-//             const profile = await DoctorProfile.create({
-//                 user: user._id,
-//                 speciality: specialities[i],
-//                 degree: "MBBS, MD",
-//                 experience: Math.floor(Math.random() * 15) + 1,
-//                 fees: Math.floor(Math.random() * 500) + 300,
-//                 address: {
-//                     city: "Kathmandu",
-//                     hospital: "City Care Hospital",
-//                 },
-//                 availability: {
-//                     Monday: ["10:00", "12:00", "15:00"],
-//                     Wednesday: ["11:00", "14:00"],
-//                     Friday: ["09:00", "13:00"],
-//                 },
-//                 image: user.image,
-//             });
+    for (let i = 0; i < 10; i++) {
+      const fullName = nepaliDoctorNames[i];
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+      const email =
+        fullName
+          .toLowerCase()
+          .replace(/\s+/g, ".")
+          .replace(/[^a-z.]/g, "") + "@hospital.np";
 
-//             doctors.push({ user, profile });
-//         }
+      // Hash password
+      const hashedPassword = await bcrypt.hash("password123", 10);
 
-//         console.log("✅ Doctors seeded successfully:", doctors.length);
-//         process.exit();
-//     } catch (error) {
-//         console.error("❌ Seeding failed:", error);
-//         process.exit(1);
-//     }
-// };
+      // Create User with image
+      const user = await User.create({
+        name: `Dr. ${fullName}`,
+        email: email,
+        password: hashedPassword,
+        address: "Kathmandu, Nepal",
+        role: "Doctor",
+        image: doctorImages[i],
+      });
 
+      // Create DoctorProfile (no image)
+      await DoctorProfile.create({
+        user: user._id,
+        speciality: specialities[i],
+        degree: i % 2 === 0 ? "MBBS, MD" : "MBBS, MS/MD",
+        experience: Math.floor(Math.random() * 20) + 5, // 5–25 years
+        fees: Math.floor(Math.random() * 800) + 400, // 400–1200
+        address: {
+          city: "Kathmandu",
+          hospital:
+            i % 3 === 0
+              ? "Grande International Hospital"
+              : i % 3 === 1
+              ? "Norvic International Hospital"
+              : "Tribhuvan University Teaching Hospital",
+        },
+        availability: {
+          Monday: ["09:00", "11:00", "14:00", "16:00"],
+          Tuesday: ["10:00", "13:00", "15:00"],
+          Wednesday: ["09:00", "12:00", "16:00"],
+          Thursday: ["11:00", "14:00"],
+          Friday: ["09:00", "13:00", "17:00"],
+          Saturday: ["10:00"],
+        },
+      });
+
+      console.log(`Seeded: Dr. ${fullName} — ${specialities[i]}`);
+    }
+
+    console.log("\n🎉 Successfully seeded 10 Nepali doctors with hashed passwords and images!");
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Seeding failed:", error.message);
+    process.exit(1);
+  }
+};
+
+// Run the seeder
 // seedDoctors();

@@ -34,7 +34,7 @@ const DoctorCard = ({ doctor }) => {
         </div>
 
         {/* Button */}
-        <Link to={`/doctor/${doctor.id}`}>
+        <Link to={`/doctors/${doctor.id}`}>
           <button className="mt-3 w-full py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
             <Calendar className="w-4 h-4" />
             Book Appointment

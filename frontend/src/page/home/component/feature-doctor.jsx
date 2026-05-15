@@ -9,7 +9,7 @@ function DoctorGrid() {
   if (error) return <div>{error}</div>;
 
   return (
-    <section className="w-full py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <section id="our-doctors" className="w-full py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-10 text-center">
           Our Doctors

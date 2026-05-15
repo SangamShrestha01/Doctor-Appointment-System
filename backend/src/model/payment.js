@@ -28,6 +28,11 @@ const paymentSchema = new mongoose.Schema(
             unique: true,
             sparse: true,
         },
+        pid: {
+            type:String,
+            unique:true,
+            sparse: true,
+        },
         paymentMethod: {
             type: String,
             enum: ["ESewa", "Cash"],

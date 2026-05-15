@@ -1,47 +1,58 @@
-import React from 'react';
-import { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // ================= INIT FROM LOCALSTORAGE =================
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('authToken');
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("authToken");
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-      setIsAuthenticated(true);
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser));
+        setToken(storedToken);
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error("Auth initialization error:", error);
+      localStorage.removeItem("user");
+      localStorage.removeItem("authToken");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (token && user) {
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('authToken', token);
-      setIsAuthenticated(true);
-    } else {
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-    }
-  }, [token, user]);
-
+  // ================= LOGIN =================
   const login = (userData, authToken) => {
     setUser(userData);
     setToken(authToken);
+    setIsAuthenticated(true);
+
+    localStorage.setItem("authToken", authToken);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
+  // ================= LOGOUT =================
   const logout = () => {
     setUser(null);
     setToken(null);
     setIsAuthenticated(false);
+
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+  };
+
+  // ✅ NEW: Update user in context + localStorage after profile edit
+  const updateUser = (updatedFields) => {
+    const updatedUser = { ...user, ...updatedFields };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   return (
@@ -53,6 +64,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         login,
         logout,
+        updateUser, // ✅ expose to components
       }}
     >
       {children}
