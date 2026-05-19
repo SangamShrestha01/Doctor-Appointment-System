@@ -7,11 +7,13 @@ const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* Sidebar */}
-      <Sidebar />
+      {/* Sidebar - fixed on the left */}
+      <div className="fixed top-0 left-0 h-screen z-10">
+        <Sidebar />
+      </div>
 
-      {/* Main Section */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Section - offset by sidebar width */}
+      <div className="flex-1 flex flex-col ml-64">
 
         {/* Top Navbar */}
         <AdminNavbar />

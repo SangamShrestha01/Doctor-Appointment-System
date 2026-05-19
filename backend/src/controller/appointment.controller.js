@@ -238,3 +238,22 @@ export const cancelAppointment = asyncHandler(async (req, res, next) => {
         data: appointment,
     });
 });
+
+export const deleteAppointment = asyncHandler(async (req, res, next) => {
+  const { appointmentId } = req.params;
+
+  const appointment = await Appointment.findById(appointmentId);
+  if (!appointment) return next(new AppError(404, "Appointment not found"));
+
+  // ✅ Only the patient who booked can delete it
+  if (appointment.patient.toString() !== req.user._id.toString()) {
+    return next(new AppError(403, "Not authorized to delete this appointment"));
+  }
+
+  await Appointment.findByIdAndDelete(appointmentId);
+
+  res.status(200).json({
+    success: true,
+    message: "Appointment deleted successfully",
+  });
+});

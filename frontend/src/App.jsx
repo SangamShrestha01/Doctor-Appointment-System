@@ -11,7 +11,7 @@ import DoctorDetailPage from "./page/doctor/detail/page";
 import PaymentSuccess from "./page/success";
 
 /* ================= BOOK APPOINTMENT ================= */
-import BookAppointment from "./page/patient/BookAppointment"; // ✅ FIXED
+import BookAppointment from "./page/patient/BookAppointment";
 
 /* ================= AUTH ================= */
 import Login from "./page/unauth/login/login";
@@ -28,7 +28,7 @@ import DoctorEditProfile from "./page/profile/DoctorEditProfile";
 /* ================= DOCTOR ================= */
 import DoctorDashboard from "./page/doctor/DoctorDashboard";
 import DoctorHome from "./page/doctor/DoctorHome";
-import DoctorAppointments from "./page/doctor/Appointments"; // ✅ separate from BookAppointment
+import DoctorAppointments from "./page/doctor/Appointments";
 
 /* ================= ADMIN ================= */
 import AdminLayout from "./layout/AdminLayout";
@@ -36,6 +36,7 @@ import AdminDashboard from "./page/admin/Dashboard";
 import Doctors from "./page/admin/Doctors";
 import CreateDoctor from "./page/admin/CreateDoctor";
 import EditDoctor from "./page/admin/EditDoctor";
+import AdminAppointments from "./page/admin/Appointments";
 
 /* ================= LAYOUTS ================= */
 import AuthLayout from "./layout/authLayout";
@@ -51,15 +52,12 @@ const App = () => {
 
         {/* ================= PUBLIC ROUTES ================= */}
         <Route element={<PublicLayout />}>
-
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.ABOUT} element={<About />} />
           <Route path={ROUTES.CONTACT} element={<Contact />} />
-
           <Route path={ROUTES.DOCTORS} element={<Doctor />} />
           <Route path={`${ROUTES.DOCTORS}/:id`} element={<DoctorDetailPage />} />
 
-          {/* BOOK APPOINTMENT */}
           <Route
             path="/book-appointment/:doctorId"
             element={
@@ -71,7 +69,6 @@ const App = () => {
 
           <Route path={ROUTES.PAYMENT_SUCCESS} element={<PaymentSuccess />} />
 
-          {/* PATIENT APPOINTMENTS */}
           <Route
             path={ROUTES.PATIENT_APPOINTMENTS}
             element={
@@ -81,7 +78,6 @@ const App = () => {
             }
           />
 
-          {/* PROFILE */}
           <Route
             path={ROUTES.PROFILE}
             element={
@@ -99,7 +95,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}
@@ -110,7 +105,7 @@ const App = () => {
 
         {/* ================= DOCTOR DASHBOARD ================= */}
         <Route
-          path="/doctor/dashboard"
+          path={ROUTES.DOCTOR_DASHBOARD}
           element={
             <ProtectedRoute allowedRoles={["Doctor"]}>
               <DoctorDashboard />
@@ -136,6 +131,7 @@ const App = () => {
           <Route path="doctors" element={<Doctors />} />
           <Route path="doctors/create" element={<CreateDoctor />} />
           <Route path="doctors/edit/:id" element={<EditDoctor />} />
+          <Route path="appointments" element={<AdminAppointments />} /> {/* ✅ */}
         </Route>
 
         {/* ================= FALLBACK ================= */}

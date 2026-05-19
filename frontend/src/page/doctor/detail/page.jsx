@@ -1,12 +1,6 @@
 import React from 'react';
 import {
-  MapPin,
-  Calendar,
-  DollarSign,
-  GraduationCap,
-  Clock,
-  ArrowLeft,
-  Icon,
+  MapPin, Calendar, DollarSign, GraduationCap, Clock, ArrowLeft,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { useDoctorByIdQuery } from '../../../services/query/doctor.query';
@@ -29,7 +23,7 @@ export default function DoctorDetailPage() {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <Link
-            href="/doctors"
+            to="/doctors"
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -46,6 +40,7 @@ export default function DoctorDetailPage() {
           <div className="bg-white rounded-2xl shadow p-6 flex gap-6">
             <img
               src={doctor.user.image}
+              alt={doctor.user.name}
               className="w-40 h-40 rounded-xl object-cover"
             />
 
@@ -54,10 +49,11 @@ export default function DoctorDetailPage() {
               <p className="text-blue-600 font-semibold">{doctor.speciality}</p>
 
               <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
-                <Info IconComp={Calendar}>2 years</Info>
-                <Info IconComp={DollarSign}>₹500</Info>
-                <Info IconComp={MapPin}>Kathmandu</Info>
-                <Info IconComp={GraduationCap}>MBBS</Info>
+                {/* ✅ Now using real data */}
+                <Info IconComp={Calendar}>{doctor.experience} years</Info>
+                <Info IconComp={DollarSign}>₹{doctor.fees}</Info>
+                <Info IconComp={MapPin}>{doctor.address?.city || "N/A"}</Info>
+                <Info IconComp={GraduationCap}>{doctor.degree}</Info>
               </div>
             </div>
           </div>
@@ -87,7 +83,6 @@ export default function DoctorDetailPage() {
 
 function Info({ IconComp, children }) {
   if (!IconComp) return null;
-
   return (
     <div className="flex items-center gap-2">
       <IconComp className="w-4 h-4 text-blue-600" />

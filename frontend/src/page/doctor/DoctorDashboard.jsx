@@ -24,7 +24,6 @@ const DoctorDashboard = () => {
     navigate("/login");
   };
 
-  // ✅ FIXED: all routes include /doctor/dashboard prefix to match App.jsx nested routes
   const navItems = [
     { to: "/doctor/dashboard",              label: "Overview",     icon: <LayoutDashboard className="w-5 h-5" />, end: true },
     { to: "/doctor/dashboard/appointments", label: "Appointments", icon: <CalendarDays    className="w-5 h-5" /> },
@@ -35,13 +34,12 @@ const DoctorDashboard = () => {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-slate-100 via-blue-50 to-cyan-50">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* ================= SIDEBAR (FIXED) ================= */}
       <aside
         className={`${
           collapsed ? "w-20" : "w-64"
-        } transition-all duration-300 bg-slate-900 text-white flex flex-col flex-shrink-0`}
+        } fixed top-0 left-0 h-screen transition-all duration-300 bg-slate-900 text-white flex flex-col z-10`}
       >
-
         {/* Logo */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -56,10 +54,7 @@ const DoctorDashboard = () => {
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-lg hover:bg-white/10 transition flex-shrink-0"
           >
-            {collapsed
-              ? <ChevronRight className="w-4 h-4" />
-              : <ChevronLeft  className="w-4 h-4" />
-            }
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
 
@@ -108,11 +103,10 @@ const DoctorDashboard = () => {
             {!collapsed && <span>Logout</span>}
           </button>
         </div>
-
       </aside>
 
-      {/* ================= MAIN ================= */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* ================= MAIN (offset by sidebar width) ================= */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
 
         {/* HEADER */}
         <header className="px-6 py-4 bg-white border-b border-slate-100 shadow-sm flex items-center justify-between">

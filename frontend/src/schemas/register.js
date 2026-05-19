@@ -45,3 +45,17 @@ export const doctorRegisterSchema = baseSchema
 // ✅ Admin
 export const adminRegisterSchema = baseSchema
   .refine(passwordMatch, passwordMatchError);
+
+
+// ✅ Updated createDoctorSchema
+export const createDoctorSchema = z.object({
+  name:       z.string().min(3, "Name must be at least 3 characters"),
+  email:      z.string().email("Invalid email address"),
+  password:   z.string().min(6, "Password must be at least 6 characters"),
+  speciality: z.string().min(1, "Please select a speciality"),
+  degree:     z.string().min(2, "Degree is required"),
+  experience: z.coerce.number().min(0, "Experience can't be negative").max(60, "Enter a valid experience"),
+  fees:       z.coerce.number().min(1, "Fees must be greater than 0"),
+  hospital:   z.string().min(2, "Hospital name is required"),
+  city:       z.string().min(2, "City is required"),
+});

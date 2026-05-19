@@ -3,7 +3,8 @@ import {
   bookAppointment,
   cancelAppointment,
   getMyAppointments,
-  getDoctorAppointments
+  getDoctorAppointments,
+  deleteAppointment,  // ✅ add this
 } from "../controller/appointment.controller.js";
 
 import { protectedRoutes } from "../middleware/protectedRoutes.js";
@@ -14,8 +15,9 @@ const router = express.Router();
 router.post("/", protectedRoutes, bookAppointment);
 router.get("/", protectedRoutes, getMyAppointments);
 router.patch("/cancel/:appointmentId", protectedRoutes, cancelAppointment);
+router.delete("/:appointmentId", protectedRoutes, deleteAppointment); // ✅ new
 
-// Doctor routes (FIXED)
+// Doctor routes
 router.get("/doctor", protectedRoutes, getDoctorAppointments);
 
 export default router;

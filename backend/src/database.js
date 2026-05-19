@@ -6,7 +6,6 @@ import { DoctorProfile } from "./model/doctor.model.js";
 
 dotenv.config();
 
-/* ---------- DB CONNECTION ---------- */
 export const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URL);
@@ -17,31 +16,16 @@ export const connectDB = async () => {
   }
 };
 
-/* ---------- DOCTOR DATA ---------- */
 const specialities = [
-  "Cardiologist",
-  "Dermatologist",
-  "Neurologist",
-  "Orthopedic Surgeon",
-  "Pediatrician",
-  "Psychiatrist",
-  "Gynecologist",
-  "ENT Specialist",
-  "Urologist",
-  "Gastroenterologist",
+  "Cardiologist", "Dermatologist", "Neurologist", "Orthopedic Surgeon",
+  "Pediatrician", "Psychiatrist", "Gynecologist", "ENT Specialist",
+  "Urologist", "Gastroenterologist",
 ];
 
 const nepaliDoctorNames = [
-  "Ram Prasad Sharma",
-  "Sita Kumari Thapa",
-  "Bishnu Bahadur Gurung",
-  "Laxmi Devi Shrestha",
-  "Krishna Prasad Pokharel",
-  "Maya Tamang",
-  "Laxmi Khadka",
-  "Sunita Magar",
-  "Hari Kumar Basnet",
-  "Parbati Dahal",
+  "Ram Prasad Sharma", "Sita Kumari Thapa", "Bishnu Bahadur Gurung",
+  "Laxmi Devi Shrestha", "Krishna Prasad Pokharel", "Maya Tamang",
+  "Laxmi Khadka", "Sunita Magar", "Hari Kumar Basnet", "Parbati Dahal",
 ];
 
 const doctorImages = [
@@ -57,12 +41,10 @@ const doctorImages = [
   "https://www.nepalmediciti.com/images/doctors/8790.jpg",
 ];
 
-/* ---------- SEED DOCTORS ---------- */
 const seedDoctors = async () => {
   try {
     await connectDB();
 
-    // Remove existing doctor data
     await User.deleteMany({ role: "Doctor" });
     await DoctorProfile.deleteMany({});
 
@@ -70,56 +52,51 @@ const seedDoctors = async () => {
 
     for (let i = 0; i < 10; i++) {
       const fullName = nepaliDoctorNames[i];
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
       const email =
-        fullName
-          .toLowerCase()
+        fullName.toLowerCase()
           .replace(/\s+/g, ".")
           .replace(/[^a-z.]/g, "") + "@hospital.np";
 
-      // Hash password
       const hashedPassword = await bcrypt.hash("password123", 10);
 
-      // Create User with image
+      // ✅ No address on User
       const user = await User.create({
         name: `Dr. ${fullName}`,
-        email: email,
+        email,
         password: hashedPassword,
-        address: "Kathmandu, Nepal",
-        role: "Doctor",
         image: doctorImages[i],
+        role: "Doctor",
       });
 
-      // Create DoctorProfile (no image)
+      // ✅ Address always saved as object on DoctorProfile
       await DoctorProfile.create({
         user: user._id,
         speciality: specialities[i],
         degree: i % 2 === 0 ? "MBBS, MD" : "MBBS, MS/MD",
-        experience: Math.floor(Math.random() * 20) + 5, // 5–25 years
-        fees: Math.floor(Math.random() * 800) + 400, // 400–1200
+        experience: Math.floor(Math.random() * 20) + 5,
+        fees: Math.floor(Math.random() * 800) + 400,
         address: {
           city: "Kathmandu",
           hospital:
-            i % 3 === 0
-              ? "Grande International Hospital"
-              : i % 3 === 1
-              ? "Norvic International Hospital"
-              : "Tribhuvan University Teaching Hospital",
+            i % 3 === 0 ? "Grande International Hospital"
+            : i % 3 === 1 ? "Norvic International Hospital"
+            : "Tribhuvan University Teaching Hospital",
         },
         availability: {
-          Monday: ["09:00", "11:00", "14:00", "16:00"],
-          Tuesday: ["10:00", "13:00", "15:00"],
+          Monday:    ["09:00", "11:00", "14:00", "16:00"],
+          Tuesday:   ["10:00", "13:00", "15:00"],
           Wednesday: ["09:00", "12:00", "16:00"],
-          Thursday: ["11:00", "14:00"],
-          Friday: ["09:00", "13:00", "17:00"],
-          Saturday: ["10:00"],
+          Thursday:  ["11:00", "14:00"],
+          Friday:    ["09:00", "13:00", "17:00"],
+          Saturday:  ["10:00"],
         },
       });
 
       console.log(`Seeded: Dr. ${fullName} — ${specialities[i]}`);
     }
 
-    console.log("\n🎉 Successfully seeded 10 Nepali doctors with hashed passwords and images!");
+    console.log("\n🎉 Successfully seeded 10 Nepali doctors!");
     process.exit(0);
   } catch (error) {
     console.error("❌ Seeding failed:", error.message);
@@ -127,5 +104,5 @@ const seedDoctors = async () => {
   }
 };
 
-// Run the seeder
+// ✅ Uncomment to run, comment back after seeding
 // seedDoctors();
