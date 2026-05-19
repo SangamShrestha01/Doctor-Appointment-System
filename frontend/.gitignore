@@ -22,4 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-VITE_API_URL=http://localhost:3000/api
+# Environment variables
+.env
+.env.*
