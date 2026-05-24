@@ -3,29 +3,40 @@ import { getAllDoctors, deleteDoctor } from "../../api/admin.api";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constant/route";
 
-// ✅ Custom Delete Modal
+// ✅ Toast Component
+const Toast = ({ message, type, onClose }) => {
+  const isError = type === "error";
+  return (
+    <div className={`fixed top-5 right-5 z-50 flex items-start gap-3 px-5 py-4 rounded-xl shadow-lg border max-w-sm w-full
+      ${isError ? "bg-red-50 border-red-100 text-red-700" : "bg-green-50 border-green-100 text-green-700"}`}
+      style={{ animation: "slideIn 0.3s ease-out" }}
+    >
+      <span className="text-xl mt-0.5">{isError ? "⚠️" : "✅"}</span>
+      <div className="flex-1">
+        <p className="text-sm font-semibold">{isError ? "Something went wrong" : "Doctor Deleted"}</p>
+        <p className="text-xs mt-0.5 opacity-80">{message}</p>
+      </div>
+      <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none mt-0.5">×</button>
+    </div>
+  );
+};
+
+// ✅ Delete Modal
 const DeleteModal = ({ doctor, onConfirm, onCancel, loading }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-    {/* Backdrop */}
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-
-    {/* Modal */}
-    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 animate-fade-in">
-
-      {/* Icon */}
+    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
+      style={{ animation: "fadeIn 0.2s ease-out" }}
+    >
       <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
         <span className="text-3xl">🗑️</span>
       </div>
-
-      {/* Text */}
       <h2 className="text-lg font-bold text-gray-800 text-center">Delete Doctor</h2>
       <p className="text-sm text-gray-400 text-center mt-1">
         Are you sure you want to delete{" "}
         <span className="font-semibold text-gray-700">{doctor?.user?.name}</span>?
         This action cannot be undone.
       </p>
-
-      {/* Actions */}
       <div className="flex gap-3 mt-6">
         <button
           onClick={onCancel}
@@ -40,13 +51,8 @@ const DeleteModal = ({ doctor, onConfirm, onCancel, loading }) => (
           className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
         >
           {loading ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Deleting...
-            </>
-          ) : (
-            "Yes, Delete"
-          )}
+            <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Deleting...</>
+          ) : "Yes, Delete"}
         </button>
       </div>
     </div>
@@ -57,9 +63,15 @@ const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null); // ✅ doctor to delete
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [toast, setToast] = useState(null); // ✅ { message, type }
   const navigate = useNavigate();
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const fetchDoctors = async () => {
     try {
@@ -72,19 +84,20 @@ const Doctors = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDoctors();
-  }, []);
+  useEffect(() => { fetchDoctors(); }, []);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
       await deleteDoctor(deleteTarget._id);
+      const deletedName = deleteTarget.user?.name;
       setDoctors((prev) => prev.filter((doc) => doc._id !== deleteTarget._id));
       setDeleteTarget(null);
+      showToast(`Dr. ${deletedName} has been removed successfully.`, "success");
     } catch (error) {
-      console.log("Delete error:", error);
+      setDeleteTarget(null);
+      showToast(error?.response?.data?.message || "Failed to delete doctor. Please try again.", "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -108,7 +121,10 @@ const Doctors = () => {
   return (
     <div className="space-y-6">
 
-      {/* ✅ Delete Modal */}
+      {/* ✅ Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Delete Modal */}
       {deleteTarget && (
         <DeleteModal
           doctor={deleteTarget}
@@ -205,7 +221,6 @@ const Doctors = () => {
                       >
                         ✏️ Edit
                       </button>
-                      {/* ✅ Set deleteTarget instead of confirm() */}
                       <button
                         onClick={() => setDeleteTarget(doc)}
                         className="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-100 transition"
@@ -260,7 +275,6 @@ const Doctors = () => {
                 >
                   ✏️ Edit
                 </button>
-                {/* ✅ Set deleteTarget instead of confirm() */}
                 <button
                   onClick={() => setDeleteTarget(doc)}
                   className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold py-2 rounded-xl border border-red-100 transition"
@@ -272,6 +286,18 @@ const Doctors = () => {
           ))
         )}
       </div>
+
+      {/* ✅ Animations */}
+      <style>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(100%); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
 
     </div>
   );

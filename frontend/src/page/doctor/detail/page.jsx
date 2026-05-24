@@ -19,6 +19,7 @@ export default function DoctorDetailPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
+
       {/* Back */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -33,9 +34,12 @@ export default function DoctorDetailPage() {
       </div>
 
       {/* Content */}
-      <section className="max-w-7xl mx-auto px-4 py-10 grid lg:grid-cols-3 gap-8">
+      {/* ✅ Added items-start to fix sticky */}
+      <section className="max-w-7xl mx-auto px-4 py-10 grid lg:grid-cols-3 gap-8 items-start">
+
         {/* Left */}
         <div className="lg:col-span-2 space-y-6">
+
           {/* Doctor Card */}
           <div className="bg-white rounded-2xl shadow p-6 flex gap-6">
             <img
@@ -43,13 +47,10 @@ export default function DoctorDetailPage() {
               alt={doctor.user.name}
               className="w-40 h-40 rounded-xl object-cover"
             />
-
             <div className="space-y-3">
               <h1 className="text-3xl font-bold">{doctor.user.name}</h1>
               <p className="text-blue-600 font-semibold">{doctor.speciality}</p>
-
               <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
-                {/* ✅ Now using real data */}
                 <Info IconComp={Calendar}>{doctor.experience} years</Info>
                 <Info IconComp={DollarSign}>₹{doctor.fees}</Info>
                 <Info IconComp={MapPin}>{doctor.address?.city || "N/A"}</Info>
@@ -61,21 +62,22 @@ export default function DoctorDetailPage() {
           <HospitalCard doctor={doctor} />
           <AvailabilityCard availability={doctor.availability} />
           <AboutDoctorCard doctor={doctor} />
+
         </div>
 
-        {/* Right */}
+        {/* Right — sticky booking form */}
         <div className="sticky top-20 h-fit bg-white rounded-2xl shadow p-6">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-600" />
             Book Appointment
           </h3>
-
           <BookingForm
             doctorId={id}
             availability={doctor.availability}
             fees={doctor.fees}
           />
         </div>
+
       </section>
     </main>
   );

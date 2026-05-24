@@ -4,6 +4,8 @@ import { DoctorProfile } from "../model/doctor.model.js";
 import { Appointment } from "../model/appointment.model.js";
 import AppError from "../utils/appError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { getDataUri } from "../utils/dataUri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 /* =========================================================
    CREATE DOCTOR

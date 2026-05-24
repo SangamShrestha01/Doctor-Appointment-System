@@ -6,23 +6,19 @@ import { useDoctorQuery } from "../../services/query/doctor.query";
 export default function DoctorsPage() {
   const location = useLocation();
   const [show, setShow] = useState(false);
-
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Animation effect on route change
   useEffect(() => {
-    setShow(false); // reset animation
-    const timer = setTimeout(() => setShow(true), 50); // trigger fade-in/slide
+    setShow(false);
+    const timer = setTimeout(() => setShow(true), 50);
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
   const animationClass = "transition-all duration-700 ease-out";
 
-  // Read filters from URL
   const speciality = searchParams.get("speciality") || "";
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
 
-  // Query parameters for paginated doctors
   const query = useMemo(() => {
     const q = { page, limit: 6 };
     if (speciality) q.speciality = speciality;
@@ -33,7 +29,6 @@ export default function DoctorsPage() {
 
   const totalPages = Math.ceil(totalCount / query.limit);
 
-  // Fetch all doctors for speciality filter
   const allSpecialitiesQuery = useMemo(() => {
     const q = { limit: 1000 };
     if (speciality) q.speciality = speciality;
@@ -50,7 +45,6 @@ export default function DoctorsPage() {
     return Array.from(set).sort();
   }, [allDoctors]);
 
-  // Handlers
   const handleCategoryClick = (cat) => {
     const newParams = new URLSearchParams(searchParams);
     if (!cat) newParams.delete("speciality");
@@ -71,7 +65,7 @@ export default function DoctorsPage() {
       className={`${animationClass} ${
         show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       } min-h-screen bg-gray-50`}
-      key={location.pathname} // remounts div on route change
+      key={location.pathname}
     >
       {/* Header */}
       <section className="bg-blue-100 py-12">
@@ -88,8 +82,10 @@ export default function DoctorsPage() {
 
       {/* Main Content */}
       <section className="py-12 bg-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
+        {/* ✅ Added lg:items-start to fix sticky sidebar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8 lg:items-start">
+
+          {/* Sidebar — sticky */}
           <aside className="lg:w-64 bg-white p-6 rounded-xl shadow space-y-6 sticky top-24 h-max">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">

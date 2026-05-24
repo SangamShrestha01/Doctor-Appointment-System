@@ -5,6 +5,29 @@ import { useBookAppointment } from '../services/mutatation/booking';
 import { useInitiatePayment } from '../services/mutatation/payment.mutations';
 import 'react-toastify/dist/ReactToastify.css';
 
+// ✅ Reusable eSewa form submitter
+const submitEsewaForm = ({ action, fields }) => {
+  if (!action || !fields) {
+    toast.error("Invalid payment data received");
+    return;
+  }
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = action;
+  form.style.display = "none";
+
+  Object.entries(fields).forEach(([key, value]) => {
+    const input = document.createElement("input");
+    input.type  = "hidden";
+    input.name  = key;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+};
+
 export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) {
   const [selectedWeekday, setSelectedWeekday] = useState('');
   const [selectedTime, setSelectedTime]       = useState('');
@@ -13,22 +36,12 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
   const { bookAppointment, loading } = useBookAppointment();
   const { initiatePayment }          = useInitiatePayment();
 
-  // ✅ FIX: Handle Mongoose Map serialized as plain object OR real Map
   const normalizedAvailability = useMemo(() => {
     const normalized = {};
     if (!availability) return normalized;
-
-    const entries =
-      availability instanceof Map
-        ? Array.from(availability.entries())
-        : Object.entries(availability);
-
-    entries.forEach(([day, times]) => {
-      if (Array.isArray(times) && times.length > 0) {
-        normalized[day.toLowerCase()] = times;
-      }
+    Object.keys(availability).forEach((day) => {
+      normalized[day.toLowerCase()] = availability[day];
     });
-
     return normalized;
   }, [availability]);
 
@@ -37,16 +50,10 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
     [normalizedAvailability]
   );
 
-  const handleDaySelect = (day) => {
-    setSelectedWeekday(day);
-    setSelectedTime(''); // reset time when day changes
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!selectedWeekday || !selectedTime) {
-      toast.error('Please select a day and time');
+      toast.error('Select day & time');
       return;
     }
     if (!reason.trim()) {
@@ -57,75 +64,61 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
     try {
       const res = await bookAppointment({
         doctorId,
-        weekday: selectedWeekday,  // backend does case-insensitive lookup now
+        weekday: selectedWeekday,
         time: selectedTime,
         reason,
       });
 
-      // ✅ FIX: correct path — API returns { success, message, data: { _id, ... } }
-      const appointmentId = res?.data?._id;
-      if (!appointmentId) throw new Error('Appointment ID missing from response');
+      const appointmentId = res?.data?._id || res?.data?.appointment?._id;
+      if (!appointmentId) throw new Error("Appointment ID missing from response");
 
       toast.success('Appointment booked! Redirecting to payment...');
 
-      const formHtml = await initiatePayment(appointmentId);
+      // ✅ Now returns { action, fields } object directly
+      const formData = await initiatePayment(appointmentId);
+      console.log("FORM DATA:", formData);
+      submitEsewaForm(formData);
 
-      const parser      = new DOMParser();
-      const doc         = parser.parseFromString(formHtml, 'text/html');
-      const backendForm = doc.querySelector('form');
-      if (!backendForm) throw new Error('No payment form returned from server');
-
-      const form    = document.createElement('form');
-      form.action   = backendForm.action;
-      form.method   = backendForm.method || 'POST';
-      form.style.display = 'none';
-      document.body.appendChild(form);
-
-      Array.from(backendForm.querySelectorAll('input')).forEach((input) => {
-        const hidden   = document.createElement('input');
-        hidden.type    = 'hidden';
-        hidden.name    = input.name;
-        hidden.value   = input.value;
-        form.appendChild(hidden);
-      });
-
-      form.submit();
     } catch (err) {
       console.error('Booking/payment error:', err);
-      toast.error(
-        err.response?.data?.message || err.message || 'Booking failed'
-      );
+      toast.error(err.response?.data?.message || err.message || 'Booking/payment failed');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
 
-      {/* Day Selection */}
+      {/* Weekday */}
       <div>
         <p className="text-sm font-semibold text-slate-700 mb-2">Select Day</p>
-        {weekdays.length === 0 && (
-          <p className="text-sm text-red-500">No available days for this doctor.</p>
-        )}
         <div className="grid grid-cols-2 gap-2">
-          {weekdays.map((day) => (
-            <button
-              key={day}
-              type="button"
-              onClick={() => handleDaySelect(day)}
-              className={`py-2 rounded-lg text-sm font-medium border transition
-                ${selectedWeekday === day
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white border-slate-300 hover:border-blue-500 hover:bg-blue-50'
-                }`}
-            >
-              {day.charAt(0).toUpperCase() + day.slice(1)}
-            </button>
-          ))}
+          {weekdays.map((day) => {
+            const times = normalizedAvailability[day] || [];
+            const isDisabled = times.length === 0;
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => !isDisabled && setSelectedWeekday(day)}
+                disabled={isDisabled}
+                className={`py-2 rounded-lg text-sm font-medium border transition
+                  ${selectedWeekday === day
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white border-slate-300'
+                  }
+                  ${isDisabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:border-blue-500 hover:bg-blue-50'
+                  }`}
+              >
+                {day.charAt(0).toUpperCase() + day.slice(1)}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Time Selection */}
+      {/* Time */}
       {selectedWeekday && (
         <div>
           <p className="text-sm font-semibold text-slate-700 mb-2">Select Time</p>
@@ -156,9 +149,7 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
 
       {/* Reason */}
       <div>
-        <label className="text-sm font-medium text-slate-700">
-          Reason for Visit
-        </label>
+        <label className="text-sm font-medium text-slate-700">Reason for Visit</label>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -169,8 +160,8 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
         />
       </div>
 
-      {/* Fee Display */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex justify-between items-center">
+      {/* Fee */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex justify-between">
         <span className="text-sm text-slate-600">Consultation Fee</span>
         <span className="text-2xl font-bold text-blue-700">₹{fees}</span>
       </div>
