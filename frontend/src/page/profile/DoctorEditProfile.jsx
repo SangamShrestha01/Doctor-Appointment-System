@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import AuthContext from "../../context/auth-context";
 
 const DoctorEditProfile = () => {
-  const { updateUser } = useContext(AuthContext); // ✅ get updateUser from context
+  const { updateUser } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -31,11 +31,11 @@ const DoctorEditProfile = () => {
       const user = doctor.user;
 
       setProfile({
-        name: user?.name || "",
-        address: user?.address || "",
+        name:       user?.name        || "",
+        address:    user?.address     || "",
         speciality: doctor?.speciality || "",
         experience: doctor?.experience || "",
-        fees: doctor?.fees || "",
+        fees:       doctor?.fees       || "",
       });
 
       if (user?.image) setPreview(user.image);
@@ -62,24 +62,26 @@ const DoctorEditProfile = () => {
     try {
       setSaving(true);
       const formData = new FormData();
-      formData.append("name", profile.name);
-      formData.append("address", profile.address);
+      formData.append("name",       profile.name);
+      formData.append("address",    profile.address);
       formData.append("speciality", profile.speciality);
       formData.append("experience", profile.experience);
-      formData.append("fees", profile.fees);
+      formData.append("fees",       profile.fees);
       if (file) formData.append("image", file);
 
-      await api.patch("/doctor/profile", formData, {
+      const res = await api.patch("/doctor/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // ✅ FIX 1: Update AuthContext → dashboard header name updates instantly
+      // ✅ Pull updated user from response and sync context + localStorage
+      const updatedUser = res.data.data.user;
       updateUser({
-        name: profile.name,
+        name:    profile.name,
         address: profile.address,
+        ...(updatedUser?.image && { image: updatedUser.image }), // ✅ syncs new image to dashboard
       });
 
-      // ✅ FIX 2: Refetch from backend → form fields show fresh saved data
+      // Refetch to show fresh data in form
       await fetchProfile();
 
       toast.success("Profile updated successfully!");

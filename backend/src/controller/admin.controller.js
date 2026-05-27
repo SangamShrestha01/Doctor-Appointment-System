@@ -11,14 +11,31 @@ import cloudinary from "../utils/cloudinary.js";
    CREATE DOCTOR
 ========================================================= */
 export const createDoctor = asyncHandler(async (req, res, next) => {
-  const { name, email, password, address, image, speciality, degree, experience, fees, availability } = req.body;
+  const { name, email, password, speciality, degree, experience, fees, availability } = req.body;
+
+  // ✅ Parse address — frontend sends it as JSON string via FormData
+  const address =
+    typeof req.body.address === "string"
+      ? JSON.parse(req.body.address)
+      : req.body.address;
 
   if (!name || !email || !password || !speciality || !degree || !fees || !address?.hospital || !address?.city) {
     return next(new AppError(400, "Please provide all required fields"));
   }
 
   const existingUser = await User.findOne({ email });
-  if (existingUser) return next(new AppError(400, "Doctor already exists with this email"));
+  if (existingUser)
+    return next(new AppError(400, "Doctor already exists with this email"));
+
+  // ✅ Handle image upload via multer + cloudinary
+  let imageUrl = "";
+  if (req.file) {
+    const fileUri = getDataUri(req.file);
+    const result = await cloudinary.uploader.upload(fileUri.content, {
+      folder: "doctors",
+    });
+    imageUrl = result.secure_url;
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -26,7 +43,7 @@ export const createDoctor = asyncHandler(async (req, res, next) => {
     name,
     email,
     password: hashedPassword,
-    image: image || "",
+    image: imageUrl,
     role: "Doctor",
   });
 
@@ -94,17 +111,33 @@ export const getDoctorById = asyncHandler(async (req, res, next) => {
 ========================================================= */
 export const updateDoctor = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { name, email, address, image, speciality, degree, experience, fees, availability } = req.body;
+  const { name, email, speciality, degree, experience, fees, availability } = req.body;
+
+  // ✅ Parse address — frontend sends it as JSON string via FormData
+  const address =
+    typeof req.body.address === "string"
+      ? JSON.parse(req.body.address)
+      : req.body.address;
 
   const doctor = await DoctorProfile.findById(id);
   if (!doctor) return next(new AppError(404, "Doctor not found"));
 
+  // ✅ Handle image upload via multer + cloudinary
+  let imageUrl;
+  if (req.file) {
+    const fileUri = getDataUri(req.file);
+    const result = await cloudinary.uploader.upload(fileUri.content, {
+      folder: "doctors",
+    });
+    imageUrl = result.secure_url;
+  }
+
   await User.findByIdAndUpdate(
     doctor.user,
     {
-      ...(name  && { name }),
-      ...(email && { email }),
-      ...(image && { image }),
+      ...(name     && { name }),
+      ...(email    && { email }),
+      ...(imageUrl && { image: imageUrl }), // only update if a new file was uploaded
     },
     { new: true }
   );
@@ -117,7 +150,7 @@ export const updateDoctor = asyncHandler(async (req, res, next) => {
       ...(experience !== undefined && { experience }),
       ...(fees !== undefined       && { fees }),
       ...(availability             && { availability }),
-      ...(address && {
+      ...(address?.hospital && address?.city && {
         address: {
           hospital: address.hospital,
           city: address.city,
@@ -176,10 +209,16 @@ export const getAllAppointments = asyncHandler(async (req, res) => {
 ========================================================= */
 export const deleteAppointment = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
+
   const appointment = await Appointment.findById(id);
   if (!appointment) return next(new AppError(404, "Appointment not found"));
+
   await Appointment.findByIdAndDelete(id);
-  res.status(200).json({ success: true, message: "Appointment deleted successfully" });
+
+  res.status(200).json({
+    success: true,
+    message: "Appointment deleted successfully",
+  });
 });
 
 /* =========================================================

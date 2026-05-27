@@ -18,14 +18,14 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Doctors
-router.post("/doctors", protectedRoutes, restrictedTo("Admin"), upload.single("image"), createDoctor);  // ✅ upload added
-router.get("/doctors", protectedRoutes, restrictedTo("Admin"), getAllDoctors);
+router.post("/doctors",    protectedRoutes, restrictedTo("Admin"), upload.single("image"), createDoctor);
+router.get("/doctors",     protectedRoutes, restrictedTo("Admin"), getAllDoctors);
 router.get("/doctors/:id", protectedRoutes, restrictedTo("Admin"), getDoctorById);
-router.patch("/doctors/:id", protectedRoutes, restrictedTo("Admin"), updateDoctor);
+router.patch("/doctors/:id", protectedRoutes, restrictedTo("Admin"), upload.single("image"), updateDoctor); // ✅ fixed
 router.delete("/doctors/:id", protectedRoutes, restrictedTo("Admin"), deleteDoctor);
 
 // Appointments
-router.get("/appointments", protectedRoutes, restrictedTo("Admin"), getAllAppointments);
+router.get("/appointments",     protectedRoutes, restrictedTo("Admin"), getAllAppointments);
 router.delete("/appointments/:id", protectedRoutes, restrictedTo("Admin"), deleteAppointment);
 
 // Patients

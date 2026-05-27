@@ -9,7 +9,9 @@ const SPECIALITIES = [
   "ENT Specialist", "Ophthalmologist",
 ];
 
-// ✅ Toast
+const avatarUrl = (name) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "Doctor")}&background=e0e7ff&color=4f46e5&bold=true`;
+
 const Toast = ({ message, type, onClose }) => {
   const isError = type === "error";
   return (
@@ -28,7 +30,6 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// ✅ Input field
 const InputField = ({ name, label, placeholder, type = "text", icon, value, onChange, disabled }) => (
   <div className="flex flex-col gap-1">
     <label className="text-sm font-medium text-gray-600">
@@ -56,7 +57,6 @@ const EditDoctor = () => {
   const [loading, setLoading]   = useState(false);
   const [toast, setToast]       = useState(null);
 
-  // ✅ Image state
   const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -70,22 +70,21 @@ const EditDoctor = () => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // ✅ Fetch existing doctor data
   const fetchDoctor = async () => {
     try {
       const res = await getDoctorById(id);
       const doc = res.data.data;
       setForm({
-        name:       doc.user?.name       || "",
-        email:      doc.user?.email      || "",
-        speciality: doc.speciality       || "",
-        degree:     doc.degree           || "",
-        fees:       doc.fees             || "",
-        experience: doc.experience       || "",
+        name:       doc.user?.name        || "",
+        email:      doc.user?.email       || "",
+        speciality: doc.speciality        || "",
+        degree:     doc.degree            || "",
+        fees:       doc.fees              || "",
+        experience: doc.experience        || "",
         hospital:   doc.address?.hospital || "",
         city:       doc.address?.city     || "",
       });
-      if (doc.user?.image) setImagePreview(doc.user.image);
+      setImagePreview(doc.user?.image || avatarUrl(doc.user?.name));
     } catch (error) {
       showToast("Failed to load doctor details.", "error");
     } finally {
@@ -108,18 +107,26 @@ const EditDoctor = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ Use FormData to support optional image update
       const formData = new FormData();
       formData.append("name",       form.name);
       formData.append("speciality", form.speciality);
       formData.append("degree",     form.degree);
       formData.append("fees",       form.fees);
       formData.append("experience", form.experience);
-      formData.append("address[hospital]", form.hospital);
-      formData.append("address[city]",     form.city);
+      formData.append("address", JSON.stringify({
+        hospital: form.hospital,
+        city:     form.city,
+      }));
       if (imageFile) formData.append("image", imageFile);
 
       await updateDoctor(id, formData);
+
+      // ✅ Refetch so image preview updates to new Cloudinary URL
+      await fetchDoctor();
+
+      // ✅ Reset imageFile so next save doesn't re-upload the same file
+      setImageFile(null);
+
       showToast(`${form.name} has been updated successfully.`, "success");
       setTimeout(() => navigate(ROUTES.ADMIN_DOCTORS), 1800);
     } catch (error) {
@@ -141,7 +148,6 @@ const EditDoctor = () => {
   return (
     <div className="max-w-2xl mx-auto">
 
-      {/* ✅ Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div className="mb-6">
@@ -157,11 +163,12 @@ const EditDoctor = () => {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Doctor Photo</p>
             <div className="flex items-center gap-5">
               <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-200 overflow-hidden flex items-center justify-center bg-gray-50 shrink-0">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-3xl">👤</span>
-                )}
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = avatarUrl(form.name); }}
+                />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label
@@ -186,8 +193,8 @@ const EditDoctor = () => {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Personal Information</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField name="name"  label="Full Name"      placeholder="e.g. Dr. Rajesh Sharma"    icon="👤" value={form.name}  onChange={handleChange} />
-              <InputField name="email" label="Email Address"  placeholder="e.g. rajesh@hospital.com"  icon="✉️" value={form.email} onChange={handleChange} disabled />
+              <InputField name="name"  label="Full Name"     placeholder="e.g. Dr. Rajesh Sharma"   icon="👤" value={form.name}  onChange={handleChange} />
+              <InputField name="email" label="Email Address" placeholder="e.g. rajesh@hospital.com" icon="✉️" value={form.email} onChange={handleChange} disabled />
             </div>
             <p className="text-xs text-gray-400 mt-2 ml-1">📌 Email cannot be changed after account creation.</p>
           </div>
@@ -209,8 +216,8 @@ const EditDoctor = () => {
                   {SPECIALITIES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              <InputField name="degree"     label="Degree / Qualification" placeholder="e.g. MBBS, MD"  icon="🎓" value={form.degree}     onChange={handleChange} />
-              <InputField name="experience" label="Years of Experience"    placeholder="e.g. 5"         icon="📅" value={form.experience} onChange={handleChange} type="number" />
+              <InputField name="degree"     label="Degree / Qualification"  placeholder="e.g. MBBS, MD" icon="🎓" value={form.degree}     onChange={handleChange} />
+              <InputField name="experience" label="Years of Experience"     placeholder="e.g. 5"        icon="📅" value={form.experience} onChange={handleChange} type="number" />
               <InputField name="fees"       label="Consultation Fees (Rs.)" placeholder="e.g. 500"      icon="💰" value={form.fees}       onChange={handleChange} type="number" />
             </div>
           </div>

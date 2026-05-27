@@ -3,12 +3,27 @@ import { getAllDoctors, deleteDoctor } from "../../api/admin.api";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constant/route";
 
+// ✅ Avatar fallback helper
+const avatarUrl = (name) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "Doctor")}&background=e0e7ff&color=4f46e5&bold=true`;
+
+// ✅ Doctor Avatar with fallback
+const DoctorAvatar = ({ image, name, className }) => (
+  <img
+    src={image || avatarUrl(name)}
+    alt={name || "doctor"}
+    className={className}
+    onError={(e) => { e.target.src = avatarUrl(name); }}
+  />
+);
+
 // ✅ Toast Component
 const Toast = ({ message, type, onClose }) => {
   const isError = type === "error";
   return (
-    <div className={`fixed top-5 right-5 z-50 flex items-start gap-3 px-5 py-4 rounded-xl shadow-lg border max-w-sm w-full
-      ${isError ? "bg-red-50 border-red-100 text-red-700" : "bg-green-50 border-green-100 text-green-700"}`}
+    <div
+      className={`fixed top-5 right-5 z-50 flex items-start gap-3 px-5 py-4 rounded-xl shadow-lg border max-w-sm w-full
+        ${isError ? "bg-red-50 border-red-100 text-red-700" : "bg-green-50 border-green-100 text-green-700"}`}
       style={{ animation: "slideIn 0.3s ease-out" }}
     >
       <span className="text-xl mt-0.5">{isError ? "⚠️" : "✅"}</span>
@@ -25,7 +40,8 @@ const Toast = ({ message, type, onClose }) => {
 const DeleteModal = ({ doctor, onConfirm, onCancel, loading }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
+    <div
+      className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
       style={{ animation: "fadeIn 0.2s ease-out" }}
     >
       <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -65,7 +81,7 @@ const Doctors = () => {
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [toast, setToast] = useState(null); // ✅ { message, type }
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
 
   const showToast = (message, type = "success") => {
@@ -121,7 +137,7 @@ const Doctors = () => {
   return (
     <div className="space-y-6">
 
-      {/* ✅ Toast */}
+      {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Delete Modal */}
@@ -191,9 +207,10 @@ const Doctors = () => {
                 <tr key={doc._id} className="hover:bg-blue-50/30 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={doc.user?.image}
-                        alt="doctor"
+                      {/* ✅ Fixed — avatar fallback for empty/missing image */}
+                      <DoctorAvatar
+                        image={doc.user?.image}
+                        name={doc.user?.name}
                         className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
                       />
                       <div>
@@ -247,9 +264,10 @@ const Doctors = () => {
           filtered.map((doc) => (
             <div key={doc._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-3">
-                <img
-                  src={doc.user?.image}
-                  alt="doctor"
+                {/* ✅ Fixed — avatar fallback for empty/missing image */}
+                <DoctorAvatar
+                  image={doc.user?.image}
+                  name={doc.user?.name}
                   className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
                 />
                 <div>
@@ -287,7 +305,7 @@ const Doctors = () => {
         )}
       </div>
 
-      {/* ✅ Animations */}
+      {/* Animations */}
       <style>{`
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(100%); }
