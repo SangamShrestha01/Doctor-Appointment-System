@@ -1,12 +1,15 @@
 import React from 'react';
 import Button from '../../../component/button';
+import { useNavigate } from 'react-router-dom';
 
 function Experience() {
+  const navigate = useNavigate();
+
   return (
-    <section className=" py-12">
+    <section className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Premium Card Container */}
-        <div className=" rounded-2xl p-8  shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
           {/* Header Section */}
           <div className="flex items-start justify-between mb-8">
             <div>
@@ -23,7 +26,6 @@ function Experience() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4 mb-8">
-            {/* Experience Card */}
             <div className="bg-white rounded-xl p-5 border border-blue-200">
               <p className="text-xs uppercase tracking-wide text-blue-500 font-medium mb-2">
                 Experience
@@ -32,7 +34,6 @@ function Experience() {
               <p className="text-sm text-blue-700 mt-1">Years in industry</p>
             </div>
 
-            {/* Rating Card */}
             <div className="bg-white rounded-xl p-5 border border-blue-200">
               <p className="text-xs uppercase tracking-wide text-blue-500 font-medium mb-2">
                 Rating
@@ -41,7 +42,9 @@ function Experience() {
                 <p className="text-3xl font-bold text-blue-900">4.8</p>
                 <span className="text-yellow-400 text-xl">★</span>
               </div>
-              <p className="text-sm text-blue-700 mt-1">320 verified reviews</p>
+              <p className="text-sm text-blue-700 mt-1">
+                320 verified reviews
+              </p>
             </div>
           </div>
 
@@ -58,22 +61,31 @@ function Experience() {
                 Within 2 hours
               </span>
             </div>
+
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-blue-700">
                 Client Satisfaction
               </span>
-              <span className="text-sm font-semibold text-blue-900">98%</span>
+              <span className="text-sm font-semibold text-blue-900">
+                98%
+              </span>
             </div>
+
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-blue-700">
                 Projects Completed
               </span>
-              <span className="text-sm font-semibold text-blue-900">500+</span>
+              <span className="text-sm font-semibold text-blue-900">
+                500+
+              </span>
             </div>
           </div>
 
           {/* CTA Button */}
-          <Button className="w-full bg-blue-500 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-base shadow-md hover:shadow-lg">
+          <Button
+            onClick={() => navigate('/doctors')}
+            className="w-full bg-blue-500 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 text-base shadow-md hover:shadow-lg"
+          >
             Book Appointment
           </Button>
         </div>

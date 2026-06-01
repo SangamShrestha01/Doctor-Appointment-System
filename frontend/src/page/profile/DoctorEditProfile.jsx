@@ -73,16 +73,25 @@ const DoctorEditProfile = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // ✅ Pull updated user from response and sync context + localStorage
       const updatedUser = res.data.data.user;
+
+      // ✅ FIX: append ?t=<timestamp> to the image URL so the browser
+      // treats it as a new request and skips the cache
+      const freshImage = updatedUser?.image
+        ? `${updatedUser.image}?t=${Date.now()}`
+        : undefined;
+
       updateUser({
         name:    profile.name,
         address: profile.address,
-        ...(updatedUser?.image && { image: updatedUser.image }), // ✅ syncs new image to dashboard
+        ...(freshImage && { image: freshImage }),
       });
 
-      // Refetch to show fresh data in form
-      await fetchProfile();
+      // ✅ Also update the preview in the form to the cache-busted URL
+      if (freshImage) setPreview(freshImage);
+
+      // Reset file input so re-uploading the same file works next time
+      setFile(null);
 
       toast.success("Profile updated successfully!");
     } catch (error) {

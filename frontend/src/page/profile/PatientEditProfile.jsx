@@ -42,7 +42,7 @@ const PatientEditProfile = () => {
       formData.append("name", profile.name);
       formData.append("address", profile.address);
       if (file) formData.append("image", file);
-      await api.put("/users/me", formData, {
+      await api.patch("/users/me", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Profile updated successfully!");

@@ -19,6 +19,12 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // ✅ Cache-busted avatar — auth-context already appends ?t= on login/update,
+  // but we strip+re-add here as a safety net in case image arrives without it
+  const avatarSrc = user?.image
+    ? `${user.image.split("?")[0]}?t=${Date.now()}`
+    : "/avatar.png";
+
   // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => {
@@ -73,15 +79,15 @@ const Header = () => {
             {isAuthenticated ? (
               <div ref={profileRef} className="relative">
 
-                {/* Avatar */}
+                {/* Avatar — ✅ uses cache-busted avatarSrc */}
                 <button
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="flex items-center gap-2"
                 >
                   <img
-                    src={user?.image || "/avatar.png"}
+                    src={avatarSrc}
                     alt="Profile"
-                    className="w-9 h-9 rounded-full ring-2 ring-blue-500/50"
+                    className="w-9 h-9 rounded-full ring-2 ring-blue-500/50 object-cover"
                   />
                   <ChevronDown
                     className={`w-4 h-4 transition ${
@@ -93,9 +99,17 @@ const Header = () => {
                 {/* Dropdown */}
                 {showProfileMenu && (
                   <div className="absolute right-0 top-12 w-56 bg-white rounded-xl shadow-xl overflow-hidden animate-dropdown">
-                    <div className="px-4 py-3 bg-slate-50">
-                      <p className="text-sm font-semibold">{user?.name}</p>
-                      <p className="text-xs text-slate-500">{user?.email}</p>
+                    <div className="px-4 py-3 bg-slate-50 flex items-center gap-3">
+                      {/* ✅ also cache-busted in dropdown */}
+                      <img
+                        src={avatarSrc}
+                        alt="Profile"
+                        className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-200"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold">{user?.name}</p>
+                        <p className="text-xs text-slate-500">{user?.email}</p>
+                      </div>
                     </div>
 
                     <button
@@ -116,16 +130,13 @@ const Header = () => {
                       ✏️ Edit Profile
                     </Link>
 
-                    {/* ✅ My Appointments */}
-                   
-                      <Link
-                        to="/patient/appointments"
-                        onClick={() => setShowProfileMenu(false)}
-                        className="w-full text-left px-4 py-3 hover:bg-slate-100 block"
-                      >
-                        📅 My Appointments
-                      </Link>
-                   
+                    <Link
+                      to="/patient/appointments"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="w-full text-left px-4 py-3 hover:bg-slate-100 block"
+                    >
+                      📅 My Appointments
+                    </Link>
 
                     <button
                       onClick={() => {
@@ -160,13 +171,22 @@ const Header = () => {
           ref={panelRef}
           className="absolute right-6 top-20 z-40 w-[360px] bg-white rounded-2xl shadow-xl border p-5 animate-panel"
         >
-          <h3 className="text-lg font-bold mb-2">My Profile</h3>
-          <p><b>Name:</b> {user?.name}</p>
-          <p><b>Email:</b> {user?.email}</p>
+          <div className="flex items-center gap-4 mb-4">
+            {/* ✅ cache-busted in profile panel too */}
+            <img
+              src={avatarSrc}
+              alt="Profile"
+              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-blue-200"
+            />
+            <div>
+              <h3 className="text-lg font-bold">{user?.name}</h3>
+              <p className="text-sm text-slate-500">{user?.email}</p>
+            </div>
+          </div>
 
           <button
             onClick={() => setProfileMode(false)}
-            className="mt-4 w-full bg-blue-600 text-white py-2 rounded-xl"
+            className="mt-2 w-full bg-blue-600 text-white py-2 rounded-xl"
           >
             Close
           </button>
@@ -193,14 +213,8 @@ const Header = () => {
             animation: dropdown 0.2s ease-out forwards;
           }
           @keyframes dropdown {
-            from {
-              opacity: 0;
-              transform: translateY(-8px) scale(0.95);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
           }
         `}
       </style>

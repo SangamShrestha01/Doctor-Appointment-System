@@ -15,7 +15,15 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem("authToken");
 
       if (storedUser && storedToken) {
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+
+        // ✅ On load, append a fresh ?t= so the browser doesn't serve
+        // a cached image from a previous session
+        if (parsed?.image) {
+          parsed.image = `${parsed.image.split("?")[0]}?t=${Date.now()}`;
+        }
+
+        setUser(parsed);
         setToken(storedToken);
         setIsAuthenticated(true);
       }
@@ -30,11 +38,18 @@ export const AuthProvider = ({ children }) => {
 
   // ================= LOGIN =================
   const login = (userData, authToken) => {
-    setUser(userData);
+    // ✅ Cache-bust image on login too
+    const userWithFreshImage = { ...userData };
+    if (userWithFreshImage?.image) {
+      userWithFreshImage.image = `${userWithFreshImage.image.split("?")[0]}?t=${Date.now()}`;
+    }
+
+    setUser(userWithFreshImage);
     setToken(authToken);
     setIsAuthenticated(true);
 
     localStorage.setItem("authToken", authToken);
+    // ✅ Save clean URL (no ?t=) to localStorage so it stays portable
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
@@ -48,11 +63,25 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  // ✅ NEW: Update user in context + localStorage after profile edit
+  // ================= UPDATE USER =================
   const updateUser = (updatedFields) => {
-    const updatedUser = { ...user, ...updatedFields };
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+    // ✅ Strip any old ?t= from image before merging
+    const cleanFields = { ...updatedFields };
+    if (cleanFields?.image) {
+      cleanFields.image = cleanFields.image.split("?")[0];
+    }
+
+    // Save clean URL to localStorage (no timestamp — it would go stale)
+    const userForStorage = { ...user, ...cleanFields };
+    localStorage.setItem("user", JSON.stringify(userForStorage));
+
+    // Keep cache-busted version in React state for the current session
+    const userForState = { ...user, ...updatedFields };
+    if (updatedFields?.image) {
+      // Ensure the in-memory image always has a fresh ?t=
+      userForState.image = `${cleanFields.image}?t=${Date.now()}`;
+    }
+    setUser(userForState);
   };
 
   return (
@@ -64,7 +93,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         login,
         logout,
-        updateUser, // ✅ expose to components
+        updateUser,
       }}
     >
       {children}

@@ -22,6 +22,9 @@ const DoctorDashboard = () => {
     .toUpperCase()
     .slice(0, 2);
 
+  // auth-context already appends ?t= on login, refresh, and updateUser
+  const avatarSrc = user?.image || null;
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -70,11 +73,14 @@ const DoctorDashboard = () => {
           ${collapsed ? "justify-center px-0" : ""}`}
           style={{ background: "rgba(255,255,255,0.05)" }}
         >
-          {/* Avatar */}
+          {/* Avatar — ✅ uses avatarSrc with cache-busting */}
           <div className="relative flex-shrink-0">
-            {user?.image ? (
-              <img src={user.image} alt="avatar"
-                className="w-10 h-10 rounded-xl object-cover ring-2 ring-blue-400/50" />
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt="avatar"
+                className="w-10 h-10 rounded-xl object-cover ring-2 ring-blue-400/50"
+              />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-sm font-bold text-white shadow-lg">
                 {initials}
@@ -155,15 +161,15 @@ const DoctorDashboard = () => {
             <p className="text-xs text-slate-400">{dateStr} · {timeStr}</p>
           </div>
 
-          {/* Right — bell + avatar */}
+          {/* Right — bell + avatar — ✅ uses avatarSrc with cache-busting */}
           <div className="flex items-center gap-3">
             <button className="relative w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition">
               <Bell className="w-4 h-4 text-slate-500" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
             </button>
             <div className="w-9 h-9 rounded-xl overflow-hidden ring-2 ring-blue-100">
-              {user?.image ? (
-                <img src={user.image} alt="avatar" className="w-full h-full object-cover" />
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-xs font-bold text-white">
                   {initials}

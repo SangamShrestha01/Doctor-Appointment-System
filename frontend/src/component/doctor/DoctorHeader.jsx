@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../context/auth-context"; // ✅ adjust path if needed
 
-const DoctorHeader = ({ user }) => {
+const DoctorHeader = () => {
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext); // ✅ read live from context
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
+    logout();
     navigate("/login");
   };
 
@@ -25,8 +27,10 @@ const DoctorHeader = ({ user }) => {
           src={user?.image}
           alt="Doctor"
           className="w-12 h-12 rounded-full object-cover border"
+          onError={(e) => {
+            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "Doctor")}&background=e0e7ff&color=4f46e5&bold=true`;
+          }}
         />
-
         <button
           onClick={handleLogout}
           className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded hover:bg-red-600 transition"
