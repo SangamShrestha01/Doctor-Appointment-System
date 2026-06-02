@@ -13,6 +13,7 @@ const Header = () => {
   const [profileMode, setProfileMode] = useState(false);
 
   const { isAuthenticated, user, logout } = useContext(AuthContext);
+  console.log("user",user)
   const location = useLocation();
   const profileRef = useRef(null);
   const panelRef = useRef(null);

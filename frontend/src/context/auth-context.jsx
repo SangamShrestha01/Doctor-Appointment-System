@@ -8,29 +8,22 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ================= INIT FROM LOCALSTORAGE =================
+  // ================= INIT =================
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("user");
       const storedToken = localStorage.getItem("authToken");
 
       if (storedUser && storedToken) {
-        const parsed = JSON.parse(storedUser);
+        const parsedUser = JSON.parse(storedUser);
 
-        // ✅ On load, append a fresh ?t= so the browser doesn't serve
-        // a cached image from a previous session
-        if (parsed?.image) {
-          parsed.image = `${parsed.image.split("?")[0]}?t=${Date.now()}`;
-        }
-
-        setUser(parsed);
+        setUser(parsedUser);
         setToken(storedToken);
         setIsAuthenticated(true);
       }
-    } catch (error) {
-      console.error("Auth initialization error:", error);
-      localStorage.removeItem("user");
-      localStorage.removeItem("authToken");
+    } catch (err) {
+      console.error("Auth error:", err);
+      localStorage.clear();
     } finally {
       setIsLoading(false);
     }
@@ -38,18 +31,11 @@ export const AuthProvider = ({ children }) => {
 
   // ================= LOGIN =================
   const login = (userData, authToken) => {
-    // ✅ Cache-bust image on login too
-    const userWithFreshImage = { ...userData };
-    if (userWithFreshImage?.image) {
-      userWithFreshImage.image = `${userWithFreshImage.image.split("?")[0]}?t=${Date.now()}`;
-    }
-
-    setUser(userWithFreshImage);
+    setUser(userData);
     setToken(authToken);
     setIsAuthenticated(true);
 
     localStorage.setItem("authToken", authToken);
-    // ✅ Save clean URL (no ?t=) to localStorage so it stays portable
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
@@ -63,25 +49,39 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  // ================= UPDATE USER =================
+  // ================= UPDATE USER (FIXED IMAGE ISSUE) =================
   const updateUser = (updatedFields) => {
-    // ✅ Strip any old ?t= from image before merging
-    const cleanFields = { ...updatedFields };
-    if (cleanFields?.image) {
-      cleanFields.image = cleanFields.image.split("?")[0];
-    }
+    setUser((prev) => {
+      if (!prev) return prev;
 
-    // Save clean URL to localStorage (no timestamp — it would go stale)
-    const userForStorage = { ...user, ...cleanFields };
-    localStorage.setItem("user", JSON.stringify(userForStorage));
+      const merged = {
+        ...prev,
+        ...updatedFields,
+      };
 
-    // Keep cache-busted version in React state for the current session
-    const userForState = { ...user, ...updatedFields };
-    if (updatedFields?.image) {
-      // Ensure the in-memory image always has a fresh ?t=
-      userForState.image = `${cleanFields.image}?t=${Date.now()}`;
-    }
-    setUser(userForState);
+      // ✅ CLEAN IMAGE (remove old query params)
+      const cleanImage = merged.image
+        ? merged.image.split("?")[0]
+        : null;
+
+      // ✅ FORCE UI REFRESH WITH CACHE BUSTER
+      const finalUser = {
+        ...merged,
+        image: cleanImage
+          ? `${cleanImage}?t=${Date.now()}`
+          : null,
+      };
+
+      // ✅ SAVE CLEAN VERSION TO LOCALSTORAGE (NO CACHE PARAM)
+      const storageUser = {
+        ...merged,
+        image: cleanImage,
+      };
+
+      localStorage.setItem("user", JSON.stringify(storageUser));
+
+      return finalUser;
+    });
   };
 
   return (
