@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { Award, Briefcase, DollarSign, MapPin } from 'lucide-react';
+import { Award, Briefcase, MapPin } from 'lucide-react';
 
 const DoctorInfo = ({ doctor }) => (
   <div className="flex-1 pt-6">
@@ -12,10 +11,11 @@ const DoctorInfo = ({ doctor }) => (
         <Award /> {doctor.degree}
       </span>
       <span className="flex gap-2">
-        <Briefcase /> {doctor.experience} yrs
+        <Briefcase /> {doctor.experience} yrs exp
       </span>
-      <span className="flex gap-2">
-        <DollarSign /> ₹{doctor.fees}
+      <span className="flex items-center gap-2">
+        <span className="text-gray-500 font-semibold text-sm">Rs.</span>
+        {doctor.fees} / visit
       </span>
     </div>
 

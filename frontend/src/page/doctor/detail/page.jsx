@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  MapPin, Calendar, DollarSign, GraduationCap, Clock, ArrowLeft,
+  MapPin, Calendar, GraduationCap, Clock, ArrowLeft,
 } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import { useDoctorByIdQuery } from '../../../services/query/doctor.query';
@@ -33,8 +33,6 @@ export default function DoctorDetailPage() {
         </div>
       </div>
 
-      {/* Content */}
-      {/* ✅ Added items-start to fix sticky */}
       <section className="max-w-7xl mx-auto px-4 py-10 grid lg:grid-cols-3 gap-8 items-start">
 
         {/* Left */}
@@ -51,8 +49,14 @@ export default function DoctorDetailPage() {
               <h1 className="text-3xl font-bold">{doctor.user.name}</h1>
               <p className="text-blue-600 font-semibold">{doctor.speciality}</p>
               <div className="grid grid-cols-2 gap-3 text-sm text-slate-700">
-                <Info IconComp={Calendar}>{doctor.experience} years</Info>
-                <Info IconComp={DollarSign}>₹{doctor.fees}</Info>
+                <Info IconComp={Calendar}>{doctor.experience} years exp</Info>
+
+                {/* ✅ Rs. instead of DollarSign icon + ₹ */}
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-600 font-bold text-sm">Rs.</span>
+                  <span>{doctor.fees} / visit</span>
+                </div>
+
                 <Info IconComp={MapPin}>{doctor.address?.city || "N/A"}</Info>
                 <Info IconComp={GraduationCap}>{doctor.degree}</Info>
               </div>

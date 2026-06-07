@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getDoctorById, updateDoctor } from "../../api/admin.api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "../../constant/route";
@@ -70,10 +70,11 @@ const EditDoctor = () => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchDoctor = async () => {
+  const fetchDoctor = useCallback(async () => {
     try {
       const res = await getDoctorById(id);
       const doc = res.data.data;
+
       setForm({
         name:       doc.user?.name        || "",
         email:      doc.user?.email       || "",
@@ -84,15 +85,20 @@ const EditDoctor = () => {
         hospital:   doc.address?.hospital || "",
         city:       doc.address?.city     || "",
       });
-      setImagePreview(doc.user?.image || avatarUrl(doc.user?.name));
+
+      const imageUrl = doc.user?.image || null;
+      setImagePreview(imageUrl ? `${imageUrl}?t=${Date.now()}` : avatarUrl(doc.user?.name));
+
     } catch (error) {
       showToast("Failed to load doctor details.", "error");
     } finally {
       setFetching(false);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { fetchDoctor(); }, [id]);
+  useEffect(() => {
+    fetchDoctor();
+  }, [fetchDoctor]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -108,27 +114,29 @@ const EditDoctor = () => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("name",       form.name);
-      formData.append("speciality", form.speciality);
-      formData.append("degree",     form.degree);
-      formData.append("fees",       form.fees);
-      formData.append("experience", form.experience);
-      formData.append("address", JSON.stringify({
-        hospital: form.hospital,
-        city:     form.city,
-      }));
+      formData.append("name",              form.name);
+      formData.append("speciality",        form.speciality);
+      formData.append("degree",            form.degree);
+      formData.append("fees",              form.fees);
+      formData.append("experience",        form.experience);
+      formData.append("address[hospital]", form.hospital);
+      formData.append("address[city]",     form.city);
+
       if (imageFile) formData.append("image", imageFile);
 
-      await updateDoctor(id, formData);
+      const res = await updateDoctor(id, formData);
 
-      // ✅ Refetch so image preview updates to new Cloudinary URL
+      const updatedImage = res.data?.data?.user?.image;
+      if (updatedImage) {
+        setImagePreview(`${updatedImage}?t=${Date.now()}`);
+      }
+
       await fetchDoctor();
-
-      // ✅ Reset imageFile so next save doesn't re-upload the same file
       setImageFile(null);
 
       showToast(`${form.name} has been updated successfully.`, "success");
       setTimeout(() => navigate(ROUTES.ADMIN_DOCTORS), 1800);
+
     } catch (error) {
       showToast(error?.response?.data?.message || "Failed to update doctor. Please try again.", "error");
     } finally {

@@ -75,6 +75,7 @@ export default function PaymentSuccess() {
           onClick={() => navigate('/doctor')}
           className="mt-6 w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
         >
+        
           Continue Booking
         </button>
       </div>

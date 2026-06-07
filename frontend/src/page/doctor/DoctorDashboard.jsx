@@ -98,7 +98,7 @@ const DoctorDashboard = () => {
 
             {!collapsed && (
               <span className="text-white font-bold">
-                Medi<span className="text-blue-400">Care</span>
+                Med<span className="text-blue-400">Connect</span>
               </span>
             )}
           </div>
