@@ -38,6 +38,9 @@ import CreateDoctor from "./page/admin/CreateDoctor";
 import EditDoctor from "./page/admin/EditDoctor";
 import AdminAppointments from "./page/admin/Appointments";
 
+/* ================= VIDEO CALL ================= */
+import VideoCallPage from "./page/videocall/VideoCallPage";
+
 /* ================= LAYOUTS ================= */
 import AuthLayout from "./layout/authLayout";
 import PublicLayout from "./layout/unAuthLayout";
@@ -103,6 +106,17 @@ const App = () => {
           <Route path={ROUTES.REGISTER} element={<Register />} />
         </Route>
 
+        {/* ================= VIDEO CALL ================= */}
+        {/* Outside all layouts so it renders fullscreen */}
+        <Route
+          path="/video-call/:appointmentId"
+          element={
+            <ProtectedRoute allowedRoles={["Patient", "Doctor"]}>
+              <VideoCallPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ================= DOCTOR DASHBOARD ================= */}
         <Route
           path={ROUTES.DOCTOR_DASHBOARD}
@@ -131,7 +145,7 @@ const App = () => {
           <Route path="doctors" element={<Doctors />} />
           <Route path="doctors/create" element={<CreateDoctor />} />
           <Route path="doctors/edit/:id" element={<EditDoctor />} />
-          <Route path="appointments" element={<AdminAppointments />} /> {/* ✅ */}
+          <Route path="appointments" element={<AdminAppointments />} />
         </Route>
 
         {/* ================= FALLBACK ================= */}

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
+import { Video } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const statusConfig = {
   pending:   { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-100",   dot: "bg-amber-400",   label: "Pending"   },
@@ -12,15 +14,24 @@ const statusConfig = {
 const getStatus = (status) =>
   statusConfig[status?.toLowerCase()] || { bg: "bg-gray-50", text: "text-gray-500", border: "border-gray-100", dot: "bg-gray-400", label: status || "Unknown" };
 
-const getPatientName  = (a) => a.patient?.name       || a.patient?.user?.name || "Unknown Patient";
-const getDoctorName   = (a) => a.doctor?.user?.name  || a.doctorName          || "Doctor Not Assigned";
-const getDoctorImage  = (a) => a.doctor?.user?.image || a.doctorImage         || null;
+const getPatientName = (a) => a.patient?.name      || a.patient?.user?.name || "Unknown Patient";
+const getDoctorName  = (a) => a.doctor?.user?.name || a.doctorName          || "Doctor Not Assigned";
+const getDoctorImage = (a) => a.doctor?.user?.image || a.doctorImage        || null;
+
+const isCallAvailable = (apt) => {
+  if (apt.status?.toLowerCase() !== "confirmed") return false;
+  if (!apt.appointmentDateTime && !apt.date) return false;
+  const today  = new Date().toDateString();
+  const aptDate = new Date(apt.appointmentDateTime || apt.date).toDateString();
+  return today === aptDate;
+};
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [search, setSearch]             = useState("");
   const [filter, setFilter]             = useState("all");
+  const navigate = useNavigate();
 
   useEffect(() => { fetchAppointments(); }, []);
 
@@ -77,7 +88,6 @@ const Appointments = () => {
 
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {/* Search */}
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
           <input
@@ -88,7 +98,6 @@ const Appointments = () => {
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition"
           />
         </div>
-        {/* Filter pills */}
         <div className="flex gap-2 flex-wrap">
           {filters.map((f) => (
             <button
@@ -125,11 +134,14 @@ const Appointments = () => {
                   <th className="px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Date & Time</th>
                   <th className="px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Reason</th>
                   <th className="px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Video Call</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((a) => {
                   const sc = getStatus(a.status);
+                  const callAvailable = isCallAvailable(a);
+
                   return (
                     <tr key={a._id} className="hover:bg-blue-50/30 transition-colors">
 
@@ -177,6 +189,23 @@ const Appointments = () => {
                         </span>
                       </td>
 
+                      {/* ✅ Video Call */}
+                      <td className="px-5 py-4">
+                        {callAvailable ? (
+                          <button
+                            onClick={() => navigate(`/video-call/${a._id}`)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition"
+                          >
+                            <Video size={13} />
+                            Start Call
+                          </button>
+                        ) : a.status?.toLowerCase() === "confirmed" ? (
+                          <span className="text-xs text-gray-400">📅 On appointment day</span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
                     </tr>
                   );
                 })}
@@ -188,6 +217,8 @@ const Appointments = () => {
           <div className="md:hidden space-y-3">
             {filtered.map((a) => {
               const sc = getStatus(a.status);
+              const callAvailable = isCallAvailable(a);
+
               return (
                 <div key={a._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
                   <div className="flex items-center justify-between">
@@ -221,6 +252,28 @@ const Appointments = () => {
                     <span>📅 {a.date}{a.time ? ` · ⏰ ${a.time}` : ""}</span>
                     {a.reason && <span>📝 {a.reason}</span>}
                   </div>
+
+                  {/* ✅ Video Call — Mobile */}
+                  {callAvailable ? (
+                    <div className="pt-2 border-t border-gray-50 flex items-center gap-3">
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                        Live
+                      </span>
+                      <button
+                        onClick={() => navigate(`/video-call/${a._id}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition"
+                      >
+                        <Video size={13} />
+                        Start Video Call
+                      </button>
+                    </div>
+                  ) : a.status?.toLowerCase() === "confirmed" && (
+                    <p className="text-xs text-gray-400 pt-1 border-t border-gray-50">
+                      🎥 Video call available on appointment day
+                    </p>
+                  )}
+
                 </div>
               );
             })}

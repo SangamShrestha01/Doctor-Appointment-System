@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import { toast } from "react-toastify";
+import { Video } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FALLBACK_IMAGE = "https://cdn-icons-png.flaticon.com/512/387/387561.png";
 
@@ -24,9 +26,18 @@ const STATUS_DOT = {
   Confirmed: "bg-blue-500",
 };
 
+const isCallAvailable = (apt) => {
+  if (apt.status !== "Confirmed") return false;
+  if (!apt.appointmentDateTime && !apt.date) return false;
+  const today = new Date().toDateString();
+  const aptDate = new Date(apt.appointmentDateTime || apt.date).toDateString();
+  return today === aptDate;
+};
+
 const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -86,6 +97,7 @@ const MyAppointments = () => {
                 })
               : "N/A";
             const status = apt.status || "Pending";
+            const callAvailable = isCallAvailable(apt);
 
             return (
               <div
@@ -127,6 +139,29 @@ const MyAppointments = () => {
                     <p className="mt-2 text-sm text-slate-500">
                       <span className="font-medium">Reason:</span> {apt.reason}
                     </p>
+                  )}
+
+                  {/* ✅ Video Call Section */}
+                  {callAvailable ? (
+                    <div className="mt-4 flex items-center gap-3">
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                        Call Available
+                      </span>
+                      <button
+                        onClick={() => navigate(`/video-call/${apt._id}`)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition"
+                      >
+                        <Video size={15} />
+                        Join Video Consultation
+                      </button>
+                    </div>
+                  ) : apt.status === "Confirmed" && (
+                    <div className="mt-4">
+                      <span className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-400 text-xs font-semibold rounded-full w-fit">
+                        🎥 Video call available on appointment day
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
