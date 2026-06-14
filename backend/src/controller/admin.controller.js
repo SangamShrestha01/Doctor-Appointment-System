@@ -159,6 +159,9 @@ export const updateDoctor = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   ).populate("user", "name email image role");
+    console.log("📥 req.body:", req.body);
+  console.log("📁 req.file:", req.file);
+  console.log("📬 address raw:", req.body.address);
 
   res.status(200).json({
     success: true,
@@ -166,6 +169,7 @@ export const updateDoctor = asyncHandler(async (req, res, next) => {
     data: updatedDoctor,
   });
 });
+
 
 /* =========================================================
    DELETE DOCTOR

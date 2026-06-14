@@ -163,7 +163,7 @@ export function BookingForm({ doctorId, availability, fees, slot_booked = [] }) 
       {/* Fee */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex justify-between">
         <span className="text-sm text-slate-600">Consultation Fee</span>
-        <span className="text-2xl font-bold text-blue-700">₹{fees}</span>
+        <span className="text-2xl font-bold text-blue-700">Rs {fees}</span>
       </div>
 
       {/* Submit */}

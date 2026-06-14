@@ -58,7 +58,7 @@ export default function PaymentSuccess() {
         </h1>
 
         <p className="text-gray-700 mb-2">
-          Amount Paid: ₹{paymentData.amount || paymentData.esewa?.total_amount}
+          Amount Paid: Rs{paymentData.amount || paymentData.esewa?.total_amount}
         </p>
         <p className="text-gray-700 mb-2">
           Status:{' '}
